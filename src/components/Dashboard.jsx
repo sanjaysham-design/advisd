@@ -87,7 +87,7 @@ export default function Dashboard({ onGoToCalls, activeClient }) {
       </div>
 
       {/* Holdings */}
-      <HoldingsTable />
+      <HoldingsTable holdings={holdings} />
 
       {/* Bottom Row */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 20 }}>
@@ -223,7 +223,7 @@ function CallCard({ cc }) {
   )
 }
 
-function HoldingsTable() {
+function HoldingsTable({ holdings = [] }) {
   const [search, setSearch] = useState('')
   const [filter, setFilter] = useState('All')
   const filtered = holdings.filter(h => {
