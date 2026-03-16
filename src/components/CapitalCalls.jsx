@@ -135,32 +135,34 @@ export default function CapitalCalls({ activeClient }) {
             </tr>
           </thead>
           <tbody>
-            {capitalCalls.map((cc, i) => {
-              const [hov, setHov] = useState(false)
-              return (
-                <tr key={cc.id} onMouseEnter={() => setHov(true)} onMouseLeave={() => setHov(false)}
-                  style={{ background: hov ? 'rgba(255,255,255,0.02)' : 'transparent' }}>
-                  <td style={{ padding: '11px 16px', fontSize: 12, fontWeight: 500, borderBottom: '1px solid rgba(255,255,255,0.04)' }}>{cc.fund}</td>
-                  <td style={{ padding: '11px 16px', fontSize: 12, color: 'var(--tx2)', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>{cc.manager}</td>
-                  <td style={{ padding: '11px 16px', fontSize: 12, color: 'var(--amber)', fontWeight: 500, borderBottom: '1px solid rgba(255,255,255,0.04)' }}>{fmt(cc.amount)}</td>
-                  <td style={{ padding: '11px 16px', fontSize: 12, borderBottom: '1px solid rgba(255,255,255,0.04)' }}>{cc.dueDate}</td>
-                  <td style={{ padding: '11px 16px', fontSize: 12, color: 'var(--amber)', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>{fmt(cc.unfundedRemaining)}</td>
-                  <td style={{ padding: '11px 16px', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
-                    <span style={{
-                      background: cc.urgency === 'urgent' ? 'rgba(239,68,68,0.14)' : cc.urgency === 'upcoming' ? 'rgba(245,158,11,0.14)' : 'var(--surf)',
-                      color: cc.urgency === 'urgent' ? 'var(--red)' : cc.urgency === 'upcoming' ? 'var(--amber)' : 'var(--tx3)',
-                      padding: '2px 8px', borderRadius: 5, fontSize: 10,
-                    }}>
-                      {cc.urgency === 'urgent' ? 'Urgent' : cc.urgency === 'upcoming' ? 'Upcoming' : 'Scheduled'}
-                    </span>
-                  </td>
-                </tr>
-              )
-            })}
+            {capitalCalls.map(cc => <CommitmentRow key={cc.id} cc={cc} />)}
           </tbody>
         </table>
       </div>
     </div>
+  )
+}
+
+function CommitmentRow({ cc }) {
+  const [hov, setHov] = useState(false)
+  return (
+    <tr onMouseEnter={() => setHov(true)} onMouseLeave={() => setHov(false)}
+      style={{ background: hov ? 'rgba(255,255,255,0.02)' : 'transparent' }}>
+      <td style={{ padding: '11px 16px', fontSize: 12, fontWeight: 500, borderBottom: '1px solid rgba(255,255,255,0.04)' }}>{cc.fund}</td>
+      <td style={{ padding: '11px 16px', fontSize: 12, color: 'var(--tx2)', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>{cc.manager}</td>
+      <td style={{ padding: '11px 16px', fontSize: 12, color: 'var(--amber)', fontWeight: 500, borderBottom: '1px solid rgba(255,255,255,0.04)' }}>{fmt(cc.amount)}</td>
+      <td style={{ padding: '11px 16px', fontSize: 12, borderBottom: '1px solid rgba(255,255,255,0.04)' }}>{cc.dueDate}</td>
+      <td style={{ padding: '11px 16px', fontSize: 12, color: 'var(--amber)', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>{fmt(cc.unfundedRemaining)}</td>
+      <td style={{ padding: '11px 16px', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+        <span style={{
+          background: cc.urgency === 'urgent' ? 'rgba(239,68,68,0.14)' : cc.urgency === 'upcoming' ? 'rgba(245,158,11,0.14)' : 'var(--surf)',
+          color: cc.urgency === 'urgent' ? 'var(--red)' : cc.urgency === 'upcoming' ? 'var(--amber)' : 'var(--tx3)',
+          padding: '2px 8px', borderRadius: 5, fontSize: 10,
+        }}>
+          {cc.urgency === 'urgent' ? 'Urgent' : cc.urgency === 'upcoming' ? 'Upcoming' : 'Scheduled'}
+        </span>
+      </td>
+    </tr>
   )
 }
 
