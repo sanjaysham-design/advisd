@@ -58,7 +58,7 @@ export default function App() {
                 background: dbReady ? 'var(--green)' : 'var(--amber)',
                 display: 'inline-block', animation: 'pulse 2s infinite',
               }} />
-              {dbReady ? 'Live · Supabase connected' : 'Demo mode · Connect Supabase to go live'} · {activeClient?.name}
+              {dbReady ? 'Live · Supabase connected' : 'Demo mode'} · {activeClient?.name}
             </div>
           </div>
           <div style={{ marginLeft: 'auto', display: 'flex', gap: 8 }}>
@@ -76,8 +76,8 @@ export default function App() {
         {view !== 'upload' && <NLQBar />}
 
         <div style={{ flex: 1, overflowY: 'auto' }}>
-          {view === 'dash'    && <Dashboard onGoToCalls={() => setView('calls')} />}
-          {view === 'calls'   && <CapitalCalls />}
+          {view === 'dash'    && <Dashboard onGoToCalls={() => setView('calls')} activeClient={activeClient} />}
+          {view === 'calls'   && <CapitalCalls activeClient={activeClient} />}
           {view === 'reports' && <Reports />}
           {view === 'upload'  && <Upload clientId={activeClient?.id} clientName={activeClient?.name} />}
         </div>

@@ -4,9 +4,10 @@ import {
   BarChart, Bar, Cell,
 } from 'recharts'
 import {
-  kpis, performanceData, allocation, capitalCalls,
-  holdings, attribution, riskMetrics,
+  kpis, performanceData, allocation,
+  attribution, riskMetrics,
 } from '../data/mockData'
+import { useClientData } from '../lib/useClientData'
 
 const clsColors = { pe: '#a78bfa', re: '#14b8a6', hf: '#3b82f6', eq: '#22c55e', fi: '#f59e0b' }
 
@@ -16,9 +17,10 @@ function fmt(n) {
   return '$' + n
 }
 
-export default function Dashboard({ onGoToCalls }) {
+export default function Dashboard({ onGoToCalls, activeClient }) {
   const [activePeriod, setActivePeriod] = useState('YTD')
   const periods = ['1M', '3M', 'YTD', '1Y', '3Y']
+  const { capitalCalls, holdings, isLive } = useClientData(activeClient?.id)
 
   return (
     <div className="fade-up" style={{ padding: '20px 24px' }}>
@@ -77,7 +79,7 @@ export default function Dashboard({ onGoToCalls }) {
       {/* Capital Calls */}
       <div style={{ display: 'flex', alignItems: 'center', marginBottom: 12 }}>
         <div style={{ fontSize: 13, fontWeight: 500 }}>Upcoming Capital Calls</div>
-        <span style={{ marginLeft: 8, background: 'rgba(239,68,68,0.14)', color: 'var(--red)', fontSize: 9, fontWeight: 700, padding: '2px 7px', borderRadius: 8 }}>3 Pending</span>
+        <span style={{ marginLeft: 8, background: 'rgba(239,68,68,0.14)', color: 'var(--red)', fontSize: 9, fontWeight: 700, padding: '2px 7px', borderRadius: 8 }}>{capitalCalls.length} Pending</span>
         <span onClick={onGoToCalls} style={{ marginLeft: 'auto', fontSize: 11, color: 'var(--blue2)', cursor: 'pointer' }}>View all →</span>
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 10, marginBottom: 20 }}>
