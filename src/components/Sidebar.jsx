@@ -1,6 +1,4 @@
 import React from 'react'
-import { clients } from '../data/mockData'
-
 const NAV = [
   {
     section: 'Overview',
@@ -33,9 +31,16 @@ const NAV = [
       { label: 'Scheduler',      view: 'dash',    icon: 'schedule' },
     ],
   },
+  {
+    section: 'Data',
+    items: [
+      { label: 'Upload Documents', view: 'upload', icon: 'upload' },
+    ],
+  },
 ]
 
 const icons = {
+  upload:   <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M7 9V2M4 5l3-3 3 3"/><path d="M2 11h10"/></svg>,
   grid:     <svg viewBox="0 0 14 14" fill="currentColor"><rect x="1" y="1" width="5" height="5" rx="1.2"/><rect x="8" y="1" width="5" height="5" rx="1.2"/><rect x="1" y="8" width="5" height="5" rx="1.2"/><rect x="8" y="8" width="5" height="5" rx="1.2"/></svg>,
   trend:    <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5"><polyline points="1,11 4,6 7,8 10,4 13,2"/></svg>,
   clock:    <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="7" cy="7" r="5.5"/><path d="M7 4v3l2 1"/></svg>,
@@ -49,7 +54,7 @@ const icons = {
   schedule: <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="7" cy="7" r="5.5"/><path d="M7 4v3l2 1.5"/></svg>,
 }
 
-export default function Sidebar({ view, setView, client, setClient }) {
+export default function Sidebar({ view, setView, clients, clientIdx, setClientIdx }) {
   return (
     <aside style={{
       width: 220, minWidth: 220,
@@ -80,15 +85,15 @@ export default function Sidebar({ view, setView, client, setClient }) {
       <div style={{ padding: '10px 12px', borderBottom: '1px solid var(--bdr)' }}>
         <div style={{ fontSize: 9, color: 'var(--tx3)', textTransform: 'uppercase', letterSpacing: '0.7px', marginBottom: 5 }}>Active Client</div>
         <select
-          value={client}
-          onChange={e => setClient(e.target.value)}
+          value={clientIdx}
+          onChange={e => setClientIdx(Number(e.target.value))}
           style={{
             background: 'var(--surf)', border: '1px solid var(--bdr2)',
             borderRadius: 7, color: 'var(--tx)', fontSize: 12,
             padding: '7px 9px', width: '100%', cursor: 'pointer',
           }}
         >
-          {clients.map(c => <option key={c} value={c}>{c}</option>)}
+          {clients.map((c, i) => <option key={c.id || c.name} value={i}>{c.name}</option>)}
         </select>
       </div>
 
