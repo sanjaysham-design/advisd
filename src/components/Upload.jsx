@@ -75,16 +75,36 @@ export default function Upload({ clientId, clientName }) {
     for (let i = 0; i < fileArr.length; i++) {
       const file = fileArr[i]
       try {
-        setUploads(prev => prev.map((u, idx) =>
-          u.name === file.name ? { ...u, status: 'uploading', progress: 50 } : u
-        ))
-        await uploadDocument(file, clientId, docType)
+        // Step 1: Upload to Supabase Storage
         setUploads(prev => prev.map(u =>
-          u.name === file.name ? { ...u, status: 'done', progress: 100 } : u
+          u.name === file.name ? { ...u, status: 'uploading', progress: 30, label: 'Uploading…' } : u
+        ))
+        const doc = await uploadDocument(file, clientId, docType)
+
+        // Step 2: Trigger AI ingestion
+        setUploads(prev => prev.map(u =>
+          u.name === file.name ? { ...u, status: 'processing', progress: 65, label: 'Analyzing with AI…' } : u
+        ))
+
+        const resp = await fetch('/api/ingest', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ documentId: doc.id, clientId }),
+        })
+
+        if (!resp.ok) {
+          const err = await resp.json()
+          throw new Error(err.error || 'Ingest failed')
+        }
+
+        const result = await resp.json()
+        setUploads(prev => prev.map(u =>
+          u.name === file.name ? { ...u, status: 'done', progress: 100, label: 'Done', extracted: result.extracted } : u
         ))
       } catch (e) {
+        console.error('Upload/ingest error:', e)
         setUploads(prev => prev.map(u =>
-          u.name === file.name ? { ...u, status: 'error' } : u
+          u.name === file.name ? { ...u, status: 'error', label: e.message } : u
         ))
       }
     }
@@ -214,13 +234,13 @@ export default function Upload({ clientId, clientName }) {
                     <div style={{
                       height: 3, borderRadius: 2,
                       width: u.status === 'done' ? '100%' : u.status === 'error' ? '100%' : '60%',
-                      background: u.status === 'error' ? 'var(--red)' : u.status === 'done' ? 'var(--green)' : 'var(--blue)',
+                      background: u.status === 'error' ? 'var(--red)' : u.status === 'done' ? 'var(--green)' : u.status === 'processing' ? 'var(--purple)' : 'var(--blue)',
                       transition: 'width 0.4s ease',
                     }} />
                   </div>
                 </div>
-                <div style={{ fontSize: 10, color: u.status === 'error' ? 'var(--red)' : u.status === 'done' ? 'var(--green)' : 'var(--tx3)', minWidth: 60 }}>
-                  {u.status === 'done' ? '✓ Done' : u.status === 'error' ? '✗ Failed' : 'Uploading…'}
+                <div style={{ fontSize: 10, color: u.status === 'error' ? 'var(--red)' : u.status === 'done' ? 'var(--green)' : u.status === 'processing' ? 'var(--purple)' : 'var(--tx3)', minWidth: 90 }}>
+                  {u.status === 'done' ? '✓ Done' : u.status === 'error' ? '✗ ' + (u.label || 'Failed') : u.label || 'Uploading…'}
                 </div>
               </div>
             ))}

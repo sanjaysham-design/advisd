@@ -1,0 +1,354 @@
+import Anthropic from '@anthropic-ai/sdk'
+import { createClient } from '@supabase/supabase-js'
+
+const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
+
+const supabase = createClient(
+  process.env.VITE_SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY // service role — never expose to browser
+)
+
+export default async function handler(req, res) {
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed' })
+  }
+
+  const { documentId, clientId } = req.body
+
+  if (!documentId || !clientId) {
+    return res.status(400).json({ error: 'documentId and clientId are required' })
+  }
+
+  try {
+    // 1. Fetch the document record from Supabase
+    const { data: doc, error: docError } = await supabase
+      .from('documents')
+      .select('*')
+      .eq('id', documentId)
+      .single()
+
+    if (docError || !doc) {
+      return res.status(404).json({ error: 'Document not found' })
+    }
+
+    // 2. Download the file from Supabase Storage
+    const { data: fileData, error: fileError } = await supabase.storage
+      .from('documents')
+      .download(doc.file_path)
+
+    if (fileError || !fileData) {
+      return res.status(500).json({ error: 'Failed to download file from storage' })
+    }
+
+    // 3. Convert file to base64 for Claude
+    const arrayBuffer = await fileData.arrayBuffer()
+    const base64Data = Buffer.from(arrayBuffer).toString('base64')
+    const isPDF = doc.file_name.toLowerCase().endsWith('.pdf')
+    const isImage = /\.(png|jpg|jpeg)$/i.test(doc.file_name)
+    const isCSV = /\.(csv|xls|xlsx)$/i.test(doc.file_name)
+
+    let extractedText = ''
+    let structured = {}
+
+    if (isPDF || isImage) {
+      // 4a. Send to Claude as a document/image
+      const mediaType = isPDF ? 'application/pdf' : fileData.type || 'image/png'
+
+      const message = await anthropic.messages.create({
+        model: 'claude-opus-4-6',
+        max_tokens: 4096,
+        messages: [
+          {
+            role: 'user',
+            content: [
+              {
+                type: isPDF ? 'document' : 'image',
+                source: {
+                  type: 'base64',
+                  media_type: mediaType,
+                  data: base64Data,
+                },
+              },
+              {
+                type: 'text',
+                text: buildExtractionPrompt(doc.doc_type),
+              },
+            ],
+          },
+        ],
+      })
+
+      extractedText = message.content[0].text
+      structured = parseClaudeResponse(extractedText, doc.doc_type)
+
+    } else if (isCSV) {
+      // 4b. For CSV/Excel send as text
+      const textContent = Buffer.from(arrayBuffer).toString('utf-8')
+
+      const message = await anthropic.messages.create({
+        model: 'claude-opus-4-6',
+        max_tokens: 4096,
+        messages: [
+          {
+            role: 'user',
+            content: `${buildExtractionPrompt(doc.doc_type)}\n\nFile contents:\n\n${textContent.substring(0, 50000)}`,
+          },
+        ],
+      })
+
+      extractedText = message.content[0].text
+      structured = parseClaudeResponse(extractedText, doc.doc_type)
+    }
+
+    // 5. Write extracted data to the appropriate tables
+    const results = await writeExtractedData(structured, documentId, clientId, doc.doc_type)
+
+    // 6. Mark document as processed
+    await supabase
+      .from('documents')
+      .update({ processed: true, raw_text: extractedText.substring(0, 10000) })
+      .eq('id', documentId)
+
+    return res.status(200).json({
+      success: true,
+      documentId,
+      docType: doc.doc_type,
+      extracted: structured,
+      written: results,
+    })
+
+  } catch (error) {
+    console.error('Ingest error:', error)
+
+    // Mark as failed
+    await supabase
+      .from('documents')
+      .update({ processed: false, raw_text: `ERROR: ${error.message}` })
+      .eq('id', documentId)
+
+    return res.status(500).json({ error: error.message })
+  }
+}
+
+// ── Prompt builder ─────────────────────────────────────────────────────────
+
+function buildExtractionPrompt(docType) {
+  const base = `You are a financial document parser for a family office portfolio management system.
+Extract all structured data from this document and return ONLY valid JSON — no markdown, no explanation, just the raw JSON object.`
+
+  const prompts = {
+    capital_call: `${base}
+
+Extract capital call information and return this exact JSON structure:
+{
+  "fund_name": "string",
+  "manager": "string",
+  "call_number": "string or null",
+  "amount": number (in dollars, no commas),
+  "due_date": "YYYY-MM-DD or null",
+  "unfunded_remaining": number or null,
+  "total_commitment": number or null,
+  "account_number": "string or null",
+  "wire_instructions": "string or null",
+  "notes": "string or null"
+}`,
+
+    statement: `${base}
+
+Extract account statement information and return this exact JSON structure:
+{
+  "account_name": "string",
+  "account_number": "string or null",
+  "custodian": "string or null",
+  "as_of_date": "YYYY-MM-DD or null",
+  "total_value": number or null,
+  "holdings": [
+    {
+      "name": "string",
+      "asset_class": "string",
+      "market_value": number,
+      "quantity": number or null,
+      "price": number or null,
+      "gain_loss": number or null,
+      "return_pct": number or null
+    }
+  ]
+}`,
+
+    performance: `${base}
+
+Extract performance report information and return this exact JSON structure:
+{
+  "fund_name": "string",
+  "manager": "string or null",
+  "as_of_date": "YYYY-MM-DD or null",
+  "period": "string or null",
+  "irr": number or null,
+  "tvpi": number or null,
+  "dpi": number or null,
+  "rvpi": number or null,
+  "gross_return": number or null,
+  "net_return": number or null,
+  "benchmark_return": number or null,
+  "nav": number or null,
+  "total_invested": number or null,
+  "total_distributed": number or null
+}`,
+
+    alt_statement: `${base}
+
+Extract alternative investment statement information and return this exact JSON structure:
+{
+  "fund_name": "string",
+  "manager": "string or null",
+  "as_of_date": "YYYY-MM-DD or null",
+  "nav": number or null,
+  "total_commitment": number or null,
+  "called_capital": number or null,
+  "unfunded_commitment": number or null,
+  "distributions": number or null,
+  "irr": number or null,
+  "tvpi": number or null,
+  "dpi": number or null,
+  "vintage_year": number or null,
+  "asset_class": "string or null"
+}`,
+
+    k1: `${base}
+
+Extract K-1 tax document information and return this exact JSON structure:
+{
+  "partnership_name": "string",
+  "ein": "string or null",
+  "tax_year": number or null,
+  "partner_name": "string or null",
+  "ordinary_income": number or null,
+  "net_rental_income": number or null,
+  "interest_income": number or null,
+  "dividends": number or null,
+  "capital_gains_short": number or null,
+  "capital_gains_long": number or null,
+  "other_income": number or null,
+  "distributions": number or null
+}`,
+
+    other: `${base}
+
+Extract any financial data found in this document and return a JSON object with whatever fields are present. Include:
+- document_type: your assessment of what type of document this is
+- key_dates: array of important dates found
+- key_amounts: array of {label, amount} objects for all dollar amounts found
+- entities: array of company/fund names mentioned
+- summary: one sentence description of what this document is`,
+  }
+
+  return prompts[docType] || prompts.other
+}
+
+// ── Response parser ────────────────────────────────────────────────────────
+
+function parseClaudeResponse(text, docType) {
+  try {
+    // Strip any markdown code fences if Claude added them
+    const cleaned = text
+      .replace(/```json\n?/g, '')
+      .replace(/```\n?/g, '')
+      .trim()
+
+    return JSON.parse(cleaned)
+  } catch (e) {
+    console.error('JSON parse failed, attempting extraction:', e.message)
+
+    // Try to find JSON object in the response
+    const match = text.match(/\{[\s\S]*\}/)
+    if (match) {
+      try {
+        return JSON.parse(match[0])
+      } catch (e2) {
+        return { parse_error: true, raw: text.substring(0, 2000) }
+      }
+    }
+
+    return { parse_error: true, raw: text.substring(0, 2000) }
+  }
+}
+
+// ── Database writer ────────────────────────────────────────────────────────
+
+async function writeExtractedData(data, documentId, clientId, docType) {
+  if (!data || data.parse_error) return { skipped: true, reason: 'parse_error' }
+
+  const results = {}
+
+  try {
+    if (docType === 'capital_call' && data.fund_name) {
+      const { data: inserted, error } = await supabase
+        .from('capital_calls')
+        .upsert({
+          client_id: clientId,
+          document_id: documentId,
+          fund_name: data.fund_name,
+          manager: data.manager,
+          amount: data.amount,
+          due_date: data.due_date,
+          call_number: data.call_number,
+          unfunded_remaining: data.unfunded_remaining,
+          status: 'pending',
+        })
+        .select()
+        .single()
+
+      if (error) throw error
+      results.capital_call = inserted
+    }
+
+    if ((docType === 'alt_statement' || docType === 'performance') && data.fund_name) {
+      const { data: inserted, error } = await supabase
+        .from('holdings')
+        .upsert({
+          client_id: clientId,
+          document_id: documentId,
+          fund_name: data.fund_name,
+          manager: data.manager,
+          asset_class: data.asset_class || 'Alternative',
+          market_value: data.nav,
+          irr: data.irr,
+          tvpi: data.tvpi,
+          dpi: data.dpi,
+          unfunded: data.unfunded_commitment,
+          as_of_date: data.as_of_date,
+        })
+        .select()
+        .single()
+
+      if (error) throw error
+      results.holding = inserted
+    }
+
+    if (docType === 'statement' && data.holdings && data.holdings.length > 0) {
+      const rows = data.holdings.map(h => ({
+        client_id: clientId,
+        document_id: documentId,
+        fund_name: h.name,
+        manager: data.custodian,
+        asset_class: h.asset_class || 'Unknown',
+        market_value: h.market_value,
+        as_of_date: data.as_of_date,
+      }))
+
+      const { data: inserted, error } = await supabase
+        .from('holdings')
+        .upsert(rows)
+        .select()
+
+      if (error) throw error
+      results.holdings = inserted
+    }
+
+  } catch (e) {
+    console.error('DB write error:', e)
+    results.error = e.message
+  }
+
+  return results
+}
