@@ -13,7 +13,7 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' })
   }
 
-  const { documentId, clientId } = req.body
+  const { documentId, clientId, reprocess } = req.body
 
   if (!documentId || !clientId) {
     return res.status(400).json({ error: 'documentId and clientId are required' })
@@ -29,6 +29,23 @@ export default async function handler(req, res) {
 
     if (docError || !doc) {
       return res.status(404).json({ error: 'Document not found' })
+    }
+
+    // ── Fast-path: re-process from existing raw_text (no storage download needed) ──
+    // Used when the doc_type was corrected after initial ingest. Skips the download
+    // and Claude call entirely — just re-parses the stored raw_text with the current
+    // (corrected) doc_type and re-writes the structured rows.
+    if (reprocess && doc.raw_text) {
+      const structured = parseClaudeResponse(doc.raw_text, doc.doc_type)
+      const results    = await writeExtractedData(structured, documentId, clientId, doc.doc_type)
+      return res.status(200).json({
+        success: true,
+        documentId,
+        docType:   doc.doc_type,
+        extracted: structured,
+        written:   results,
+        source:    'raw_text_reparse',
+      })
     }
 
     // 2. Download the file from Supabase Storage
@@ -338,27 +355,84 @@ async function writeExtractedData(data, documentId, clientId, docType) {
       }
     }
 
-    if ((docType === 'alt_statement' || docType === 'performance') && data.fund_name) {
-      const { data: inserted, error } = await supabase
-        .from('holdings')
-        .upsert({
-          client_id: clientId,
-          document_id: documentId,
-          fund_name: data.fund_name,
-          manager: data.manager,
-          asset_class: data.asset_class || 'Alternative',
-          market_value: data.nav,
-          irr: data.irr,
-          tvpi: data.tvpi,
-          dpi: data.dpi,
-          unfunded: data.unfunded_commitment,
-          as_of_date: data.as_of_date,
-        })
-        .select()
-        .single()
+    if (docType === 'alt_statement' || docType === 'performance') {
+      // Primary fields (standard format)
+      let fund_name = data.fund_name
 
-      if (error) throw error
-      results.holding = inserted
+      // Fallback: if Claude returned 'other'-style JSON, pull from entities array
+      if (!fund_name && Array.isArray(data.entities) && data.entities.length > 0) {
+        fund_name = data.entities[0]
+      }
+
+      // NAV: direct field → key_amounts → amount (capital_call format stores called capital)
+      let nav = data.nav ?? null
+      if (nav == null && Array.isArray(data.key_amounts)) {
+        const navEntry = data.key_amounts.find(k => /net asset value|nav\b/i.test(k.label))
+        nav = navEntry?.amount ?? null
+      }
+      if (nav == null && data.amount != null) nav = data.amount
+
+      // IRR: direct field → performance_metrics (fraction → %) → notes string
+      let irr = data.irr ?? null
+      if (irr == null && data.performance_metrics?.net_irr_since_inception != null) {
+        irr = Math.round(data.performance_metrics.net_irr_since_inception * 1000) / 10 // fraction → %
+      }
+      if (irr == null && typeof data.notes === 'string') {
+        const m = data.notes.match(/Net\s+IRR\s+([\d.]+)%/i)
+        if (m) irr = parseFloat(m[1])
+      }
+
+      // TVPI: direct field → performance_metrics → notes string
+      let tvpi = data.tvpi ?? null
+      if (tvpi == null) tvpi = data.performance_metrics?.equity_multiple_tvpi ?? null
+      if (tvpi == null && typeof data.notes === 'string') {
+        const m = data.notes.match(/Net\s+TVPI\s+([\d.]+)x/i)
+        if (m) tvpi = parseFloat(m[1])
+      }
+
+      // DPI: direct field → performance_metrics
+      let dpi = data.dpi ?? data.performance_metrics?.distributions_to_paid_in_dpi ?? null
+
+      // Unfunded: direct fields
+      let unfunded = data.unfunded_commitment ?? data.unfunded_remaining ?? null
+      if (unfunded == null && Array.isArray(data.key_amounts)) {
+        const u = data.key_amounts.find(k => /unfunded/i.test(k.label))
+        unfunded = u?.amount ?? null
+      }
+
+      // Asset class: direct → account_details
+      let asset_class = data.asset_class
+        || data.account_details?.asset_class
+        || 'Alternative'
+
+      // As-of date: direct → account_details
+      let as_of_date = data.as_of_date
+        || data.account_details?.period_ending
+        || data.account_details?.statement_date
+        || null
+
+      if (fund_name) {
+        const { data: inserted, error } = await supabase
+          .from('holdings')
+          .upsert({
+            client_id:    clientId,
+            document_id:  documentId,
+            fund_name,
+            manager:      data.manager || null,
+            asset_class,
+            market_value: nav,
+            irr,
+            tvpi,
+            dpi,
+            unfunded,
+            as_of_date,
+          })
+          .select()
+          .single()
+
+        if (error) throw error
+        results.holding = inserted
+      }
     }
 
     if (docType === 'statement') {

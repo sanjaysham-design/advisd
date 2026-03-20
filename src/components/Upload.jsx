@@ -149,7 +149,7 @@ export default function Upload({ clientId, clientName }) {
       const resp = await fetch('/api/ingest', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ documentId: doc.id, clientId }),
+        body:    JSON.stringify({ documentId: doc.id, clientId, reprocess: true }),
       })
       if (!resp.ok) {
         const err = await resp.json()
