@@ -5,103 +5,101 @@ import {
 } from 'recharts'
 import { C } from './ClientPortal'
 
-const fmt$M = v => `$${(v / 1_000_000).toFixed(1)}M`
+const fmt$M  = v => `$${(v / 1_000_000).toFixed(1)}M`
+const fmtPct = v => `${v.toFixed(1)}%`
+const fmtBps = v => `${v >= 0 ? '+' : ''}${Math.round(v * 100)} bps`
 
-// ── Simplified PME calculation ─────────────────────────────────────────────────
-// For each period, simulate "if you had invested those same capital calls into
-// the benchmark, what would it be worth today?"
-// Uses annualized return assumptions to grow each investment forward.
-
+// ── Benchmarks — long-run annualised returns ──────────────────────────────────
+// Using realistic long-run historical averages, not the exceptional recent decade.
 const BENCHMARKS = {
-  sp500:   { label: 'S&P 500',       annualReturn: 0.135, color: '#f59e0b',  desc: 'Large-cap US equities' },
-  msci:    { label: 'MSCI World',    annualReturn: 0.099, color: '#14b8a6',  desc: 'Global developed markets' },
-  russell: { label: 'Russell 2000',  annualReturn: 0.088, color: '#a78bfa',  desc: 'US small-cap equities' },
-  hfri:    { label: 'HFRI Fund Wtd', annualReturn: 0.068, color: '#22c55e',  desc: 'Hedge fund composite index' },
+  sp500:   { label: 'S&P 500',       annualReturn: 0.105, color: '#f59e0b',  desc: 'Large-cap US equities' },
+  msci:    { label: 'MSCI World',    annualReturn: 0.080, color: '#14b8a6',  desc: 'Global developed markets' },
+  russell: { label: 'Russell 2000',  annualReturn: 0.075, color: '#a78bfa',  desc: 'US small-cap equities' },
+  hfri:    { label: 'HFRI Fund Wtd', annualReturn: 0.055, color: '#22c55e',  desc: 'Hedge fund composite index' },
 }
 
 // Reference date
-const NOW_YEAR   = 2026
-const NOW_MONTH  = 3  // March
+const NOW_YEAR  = 2026
+const NOW_MONTH = 3  // March
 
-function parsePeriodDate(str) {
-  const [year, month] = str.split('-').map(Number)
-  return { year, month }
+// Parse "January 2016" → 2016
+function parseInceptionYear(str) {
+  const parts = str.split(' ')
+  return parseInt(parts[parts.length - 1], 10)
 }
 
-function yearsAgo(str) {
-  const { year, month } = parsePeriodDate(str)
-  return (NOW_YEAR - year) + (NOW_MONTH - month) / 12
+// Years since inception
+function yearsActive(inceptionYear) {
+  return NOW_YEAR - inceptionYear + (NOW_MONTH - 1) / 12
 }
 
-function computePME(cfHistory, annualReturn) {
-  // For each contribution, compound it forward to today
-  // For each distribution, that's "money back" — deduct the same from index portfolio
-  let benchmarkValue = 0
-  cfHistory.forEach(cf => {
-    const t = yearsAgo(cf.date)
-    const growthFactor = Math.pow(1 + annualReturn, t)
-    benchmarkValue += cf.contribution * growthFactor
-    benchmarkValue -= cf.distribution * growthFactor
-  })
-  return Math.max(0, benchmarkValue)
+// ── IRR-based PME comparison ───────────────────────────────────────────────────
+// Compares the growth multiple achieved by the portfolio (at its IRR) vs the
+// benchmark over the same period. A ratio > 1.0x means the portfolio won.
+function computeIRRPME(portfolioIRR, benchmarkReturn, years) {
+  const portfolioMultiple = Math.pow(1 + portfolioIRR / 100, years)
+  const benchmarkMultiple = Math.pow(1 + benchmarkReturn,    years)
+  const pmeRatio          = benchmarkMultiple > 0 ? portfolioMultiple / benchmarkMultiple : 0
+  return { portfolioMultiple, benchmarkMultiple, pmeRatio }
 }
 
-// Build cumulative portfolio vs benchmark chart over time
-function buildChartData(cfHistory, annualReturn, currentNAV) {
-  // Group cash flows by approximate year
-  const byYear = {}
-  cfHistory.forEach(cf => {
-    const yr = parsePeriodDate(cf.date).year
-    if (!byYear[yr]) byYear[yr] = { contrib: 0, distrib: 0 }
-    byYear[yr].contrib += cf.contribution
-    byYear[yr].distrib += cf.distribution
-  })
-
-  const years = Object.keys(byYear).map(Number).sort()
-  let portCum    = 0
-  let benchCum   = 0
-  const rows     = []
-
-  years.forEach(yr => {
-    const t        = NOW_YEAR - yr
-    portCum        += byYear[yr].contrib
-    portCum        -= byYear[yr].distrib * 0.8  // rough: distributions reduce cost basis
-    benchCum       += byYear[yr].contrib * Math.pow(1 + annualReturn, t)
-    benchCum       -= byYear[yr].distrib * Math.pow(1 + annualReturn, t) * 0.8
-
+// ── Normalized growth chart ────────────────────────────────────────────────────
+// Both lines start at $10M at inception. Portfolio grows at the portfolio's IRR,
+// benchmark at its annualised rate. Gives a clean apples-to-apples comparison.
+function buildNormalizedChart(inceptionYear, portfolioIRR, benchmarkReturn) {
+  const rows = []
+  for (let y = inceptionYear; y <= NOW_YEAR; y++) {
+    const t = y - inceptionYear
     rows.push({
-      year:      `${yr}`,
-      portfolio: Math.max(0, portCum / 1_000_000),
-      benchmark: Math.max(0, benchCum / 1_000_000),
+      year:      `${y}`,
+      portfolio: 10 * Math.pow(1 + portfolioIRR / 100, t),
+      benchmark: 10 * Math.pow(1 + benchmarkReturn, t),
     })
-  })
-
-  // Add current year endpoint
-  rows.push({
-    year:      'Today',
-    portfolio: currentNAV / 1_000_000,
-    benchmark: Math.max(0, computePME(cfHistory, annualReturn)) / 1_000_000,
-  })
-
+  }
   return rows
+}
+
+// ── Value creation from cfHistory (accounting only) ───────────────────────────
+function computeValueCreation(cfHistory, currentNAV) {
+  let totalDeployed     = 0
+  let totalDistributions = 0
+  cfHistory.forEach(cf => {
+    totalDeployed      += cf.contribution
+    totalDistributions += cf.distribution
+  })
+  const totalValue = totalDistributions + currentNAV
+  const moic       = totalDeployed > 0 ? totalValue / totalDeployed : 0
+  const netGain    = totalValue - totalDeployed
+  return { totalDeployed, totalDistributions, totalValue, moic, netGain }
 }
 
 export default function ClientPME({ data, clientName }) {
   const [bench, setBench] = useState('sp500')
   const bm = BENCHMARKS[bench]
 
-  const benchmarkValue = useMemo(
-    () => computePME(data.cfHistory, bm.annualReturn),
-    [bench, data.cfHistory, bm.annualReturn]
+  const inceptionYear = parseInceptionYear(data.inception)
+  const years         = yearsActive(inceptionYear)
+
+  // IRR-based PME for the active benchmark
+  const { portfolioMultiple, benchmarkMultiple, pmeRatio } = useMemo(
+    () => computeIRRPME(data.irr, bm.annualReturn, years),
+    [bench, data.irr, bm.annualReturn, years]
   )
 
-  const portfolioWins = data.aum > benchmarkValue
-  const diff = data.aum - benchmarkValue
-  const pmeRatio = benchmarkValue > 0 ? data.aum / benchmarkValue : 0
+  const portfolioWins = pmeRatio >= 1.0
+  const irrDiff       = data.irr - bm.annualReturn * 100     // in percentage points
+  const bpsDiff       = irrDiff * 100                         // in basis points
 
+  // Normalized growth chart data
   const chartData = useMemo(
-    () => buildChartData(data.cfHistory, bm.annualReturn, data.aum),
-    [bench, data.cfHistory, bm.annualReturn, data.aum]
+    () => buildNormalizedChart(inceptionYear, data.irr, bm.annualReturn),
+    [bench, inceptionYear, data.irr, bm.annualReturn]
+  )
+
+  // Value creation (accounting)
+  const vc = useMemo(
+    () => computeValueCreation(data.cfHistory, data.aum),
+    [data.cfHistory, data.aum]
   )
 
   return (
@@ -111,34 +109,56 @@ export default function ClientPME({ data, clientName }) {
         <div style={{ fontSize: 13, color: C.tx2, marginBottom: 10, letterSpacing: '0.3px', textTransform: 'uppercase', fontWeight: 500 }}>
           Public Market Equivalent
         </div>
-        <div style={{ fontSize: 18, fontWeight: 600, lineHeight: 1.5, maxWidth: 620, color: C.tx, marginBottom: 16 }}>
-          If you had invested your capital calls into the {bm.label} on the same dates,
-          your portfolio would be worth{' '}
-          <span style={{ color: portfolioWins ? C.red : C.grn }}>{fmt$M(benchmarkValue)}</span>.
-          {' '}Your actual portfolio is{' '}
-          <span style={{ color: C.acc, fontWeight: 700 }}>{fmt$M(data.aum)}</span>.
+        <div style={{ fontSize: 18, fontWeight: 600, lineHeight: 1.6, maxWidth: 680, color: C.tx, marginBottom: 16 }}>
+          Your portfolio has delivered a{' '}
+          <span style={{ color: C.acc, fontWeight: 700 }}>{fmtPct(data.irr)} IRR</span>
+          {' '}vs the {bm.label}'s{' '}
+          <span style={{ color: bm.color, fontWeight: 700 }}>{fmtPct(bm.annualReturn * 100)}</span>
+          {' '}annualised return since inception — outperforming by{' '}
+          <span style={{ color: portfolioWins ? C.grn : C.red, fontWeight: 700 }}>
+            {fmtBps(bpsDiff)}
+          </span>.
         </div>
-        <div style={{
-          display: 'inline-flex', alignItems: 'center', gap: 10,
-          background: portfolioWins ? 'rgba(74,222,128,0.08)' : 'rgba(248,113,113,0.08)',
-          border: `1px solid ${portfolioWins ? 'rgba(74,222,128,0.2)' : 'rgba(248,113,113,0.2)'}`,
-          borderRadius: 14, padding: '12px 20px',
-        }}>
+
+        {/* Summary badge */}
+        <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
           <div style={{
-            fontSize: 28, fontWeight: 800, letterSpacing: '-1px',
-            color: portfolioWins ? C.grn : C.red,
+            display: 'inline-flex', alignItems: 'center', gap: 12,
+            background: portfolioWins ? 'rgba(74,222,128,0.08)' : 'rgba(248,113,113,0.08)',
+            border: `1px solid ${portfolioWins ? 'rgba(74,222,128,0.2)' : 'rgba(248,113,113,0.2)'}`,
+            borderRadius: 14, padding: '12px 20px',
           }}>
-            {portfolioWins ? '+' : '-'}{fmt$M(Math.abs(diff))}
-          </div>
-          <div>
-            <div style={{ fontSize: 13, fontWeight: 500, color: portfolioWins ? C.grn : C.red }}>
-              {portfolioWins ? 'ahead of' : 'behind'} the {bm.label}
+            <div style={{
+              fontSize: 30, fontWeight: 800, letterSpacing: '-1px',
+              color: portfolioWins ? C.grn : C.red,
+            }}>
+              {irrDiff >= 0 ? '+' : ''}{fmtPct(irrDiff)}
             </div>
-            <div style={{ fontSize: 11, color: C.tx2, marginTop: 2 }}>
-              PME ratio: <strong style={{ color: C.tx }}>{pmeRatio.toFixed(2)}x</strong>
-              {' '}({pmeRatio >= 1 ? 'outperforming' : 'underperforming'})
+            <div>
+              <div style={{ fontSize: 13, fontWeight: 600, color: portfolioWins ? C.grn : C.red }}>
+                {portfolioWins ? 'above' : 'below'} {bm.label}
+              </div>
+              <div style={{ fontSize: 11, color: C.tx2, marginTop: 3 }}>
+                PME ratio: <strong style={{ color: C.tx }}>{pmeRatio.toFixed(2)}x</strong>
+                {' '}· <span style={{ color: portfolioWins ? C.grn : C.red }}>{portfolioWins ? 'outperforming' : 'underperforming'}</span>
+              </div>
             </div>
           </div>
+
+          {/* Quick IRR vs Benchmark stats */}
+          {[
+            { label: 'Portfolio IRR', value: fmtPct(data.irr), color: C.acc },
+            { label: `${bm.label} return`, value: fmtPct(bm.annualReturn * 100), color: bm.color },
+            { label: 'Years active', value: `${years.toFixed(1)}y`, color: C.tx2 },
+          ].map(s => (
+            <div key={s.label} style={{
+              background: C.card, border: `1px solid ${C.bdr}`,
+              borderRadius: 14, padding: '12px 20px',
+            }}>
+              <div style={{ fontSize: 10, color: C.tx3, marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.3px' }}>{s.label}</div>
+              <div style={{ fontSize: 20, fontWeight: 700, color: s.color }}>{s.value}</div>
+            </div>
+          ))}
         </div>
       </div>
 
@@ -164,19 +184,19 @@ export default function ClientPME({ data, clientName }) {
         ))}
       </div>
 
-      {/* ── PME growth chart ─────────────────────────────────────────── */}
+      {/* ── Normalized growth chart ───────────────────────────────────── */}
       <div style={{ background: C.card, border: `1px solid ${C.bdr}`, borderRadius: 20, padding: '24px 24px 18px', marginBottom: 24 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20 }}>
           <div>
-            <div style={{ fontSize: 14, fontWeight: 600 }}>Portfolio Growth vs {bm.label}</div>
+            <div style={{ fontSize: 14, fontWeight: 600 }}>$10M Invested at Inception — Growth vs {bm.label}</div>
             <div style={{ fontSize: 12, color: C.tx2, marginTop: 4 }}>
-              Same capital deployed on same dates — what each approach would be worth
+              Hypothetical $10M invested at inception, each growing at their respective annualised return
             </div>
           </div>
           <div style={{ display: 'flex', gap: 16 }}>
             {[
-              [C.acc,      'Your Portfolio'],
-              [bm.color,   bm.label],
+              [C.acc,    'Your Portfolio'],
+              [bm.color, bm.label],
             ].map(([c, l]) => (
               <div key={l} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: C.tx2 }}>
                 <span style={{ width: 10, height: 10, borderRadius: 2, background: c, display: 'inline-block' }} />
@@ -208,7 +228,7 @@ export default function ClientPME({ data, clientName }) {
                 contentStyle={{ background: C.card2, border: `1px solid ${C.bdr2}`, borderRadius: 10, fontSize: 12, color: C.tx }}
                 itemStyle={{ color: C.tx }}
                 labelStyle={{ color: C.tx2 }}
-                formatter={(v, n) => [fmt$M(v * 1_000_000), n === 'portfolio' ? 'Your Portfolio' : bm.label]}
+                formatter={(v, n) => [`$${v.toFixed(1)}M`, n === 'portfolio' ? 'Your Portfolio' : bm.label]}
               />
               <Area dataKey="portfolio" type="monotone" stroke={C.acc}    strokeWidth={2.5} fill="url(#portGrad)"  dot={false} />
               <Area dataKey="benchmark" type="monotone" stroke={bm.color} strokeWidth={1.5} fill="url(#benchGrad)" dot={false} strokeDasharray="5 3" />
@@ -220,9 +240,9 @@ export default function ClientPME({ data, clientName }) {
       {/* ── 4 benchmark comparison cards ─────────────────────────────── */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12, marginBottom: 24 }}>
         {Object.entries(BENCHMARKS).map(([id, b]) => {
-          const bv     = computePME(data.cfHistory, b.annualReturn)
-          const wins   = data.aum > bv
-          const ratio  = bv > 0 ? data.aum / bv : 0
+          const { pmeRatio: ratio } = computeIRRPME(data.irr, b.annualReturn, years)
+          const wins    = data.irr > b.annualReturn * 100
+          const diff    = data.irr - b.annualReturn * 100
           return (
             <div
               key={id}
@@ -240,8 +260,8 @@ export default function ClientPME({ data, clientName }) {
               <div style={{ fontSize: 11, color: wins ? C.grn : C.red, marginTop: 4, fontWeight: 600 }}>
                 {wins ? 'Outperforming' : 'Underperforming'}
               </div>
-              <div style={{ fontSize: 10, color: C.tx3, marginTop: 6 }}>
-                Benchmark: {fmt$M(bv)}
+              <div style={{ fontSize: 10, color: C.tx3, marginTop: 4 }}>
+                {diff >= 0 ? '+' : ''}{fmtPct(diff)} vs {fmtPct(b.annualReturn * 100)}
               </div>
               <div style={{ marginTop: 10, height: 3, borderRadius: 2, background: 'rgba(255,255,255,0.06)' }}>
                 <div style={{
@@ -255,16 +275,75 @@ export default function ClientPME({ data, clientName }) {
         })}
       </div>
 
+      {/* ── Value Creation ────────────────────────────────────────────── */}
+      <div style={{ background: C.card, border: `1px solid ${C.bdr}`, borderRadius: 20, padding: '24px', marginBottom: 24 }}>
+        <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 4 }}>Value Creation Since Inception</div>
+        <div style={{ fontSize: 12, color: C.tx2, marginBottom: 20 }}>
+          Total capital deployed vs value returned — distributions received + current portfolio NAV
+        </div>
+
+        {/* MOIC banner */}
+        <div style={{
+          background: 'rgba(74,222,128,0.07)',
+          border: '1px solid rgba(74,222,128,0.18)',
+          borderRadius: 14, padding: '16px 20px',
+          marginBottom: 20, display: 'flex', alignItems: 'center', gap: 16,
+        }}>
+          <div>
+            <div style={{ fontSize: 11, color: C.tx3, textTransform: 'uppercase', letterSpacing: '0.3px', marginBottom: 4 }}>
+              Total Value Created
+            </div>
+            <div style={{ fontSize: 28, fontWeight: 800, letterSpacing: '-1px', color: C.grn }}>
+              {fmt$M(vc.netGain)} net gain
+            </div>
+            <div style={{ fontSize: 12, color: C.tx2, marginTop: 4 }}>
+              {fmt$M(vc.totalValue)} total value on {fmt$M(vc.totalDeployed)} deployed
+              {' '}— <strong style={{ color: C.tx }}>{vc.moic.toFixed(2)}x MOIC</strong>
+            </div>
+          </div>
+          <div style={{ marginLeft: 'auto', textAlign: 'right' }}>
+            <div style={{ fontSize: 10, color: C.tx3, marginBottom: 4, textTransform: 'uppercase' }}>Multiple on invested capital</div>
+            <div style={{ fontSize: 36, fontWeight: 800, letterSpacing: '-1.5px', color: C.grn }}>
+              {vc.moic.toFixed(2)}x
+            </div>
+          </div>
+        </div>
+
+        {/* 4 stat cards */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12 }}>
+          {[
+            { label: 'Total Capital Deployed',    value: fmt$M(vc.totalDeployed),      sub: 'Contributions since inception', color: C.tx },
+            { label: 'Distributions Received',    value: fmt$M(vc.totalDistributions), sub: 'Cash returned to you',          color: C.acc },
+            { label: 'Current Portfolio NAV',     value: fmt$M(data.aum),              sub: 'Unrealised value today',         color: C.acc },
+            { label: 'Total Value',               value: fmt$M(vc.totalValue),         sub: 'Distributions + NAV',           color: C.grn },
+          ].map(s => (
+            <div key={s.label} style={{
+              background: C.bg, border: `1px solid ${C.bdr}`, borderRadius: 14, padding: '16px',
+            }}>
+              <div style={{ fontSize: 10, color: C.tx3, textTransform: 'uppercase', letterSpacing: '0.3px', marginBottom: 8 }}>
+                {s.label}
+              </div>
+              <div style={{ fontSize: 20, fontWeight: 700, color: s.color, letterSpacing: '-0.5px' }}>
+                {s.value}
+              </div>
+              <div style={{ fontSize: 10, color: C.tx3, marginTop: 4 }}>{s.sub}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+
       {/* ── Explainer ─────────────────────────────────────────────────── */}
       <div style={{ background: C.card, border: `1px solid ${C.bdr}`, borderRadius: 16, padding: '20px 24px' }}>
         <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 10, color: C.tx2 }}>How is this calculated?</div>
         <div style={{ fontSize: 12, color: C.tx3, lineHeight: 1.8 }}>
-          The <strong style={{ color: C.tx2 }}>Public Market Equivalent (PME)</strong> answers a simple question:
-          if you'd invested the same dollars into a public index on the same dates your capital was called,
-          what would that be worth today? We use the Long-Nickels PME method — each capital call is
-          "invested" in the benchmark on the call date, and each distribution is "sold" from the benchmark.
-          The remaining benchmark value is compared to your portfolio's current NAV.
-          A PME {'>'}1.0x means your portfolio has outperformed the benchmark over the same period and cash flows.
+          The <strong style={{ color: C.tx2 }}>PME ratio</strong> compares your portfolio's IRR to the benchmark's
+          long-run annualised return over the same period. A ratio of 1.0x means you matched the benchmark;
+          above 1.0x means you outperformed. The growth chart shows a hypothetical $10M invested at each rate
+          from inception — this removes the distorting effect of cash flow timing so you can compare
+          apples-to-apples. <strong style={{ color: C.tx2 }}>Value Creation</strong> shows total capital you
+          deployed versus the total value returned (distributions received + current NAV), expressed as a
+          multiple on invested capital (MOIC). A MOIC above 1.0x means you've created wealth beyond your
+          original investment.
         </div>
       </div>
     </div>
