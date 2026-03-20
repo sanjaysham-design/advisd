@@ -281,25 +281,61 @@ async function writeExtractedData(data, documentId, clientId, docType) {
   const results = {}
 
   try {
-    if (docType === 'capital_call' && data.fund_name) {
-      const { data: inserted, error } = await supabase
-        .from('capital_calls')
-        .upsert({
-          client_id: clientId,
-          document_id: documentId,
-          fund_name: data.fund_name,
-          manager: data.manager,
-          amount: data.amount,
-          due_date: data.due_date,
-          call_number: data.call_number,
-          unfunded_remaining: data.unfunded_remaining,
-          status: 'pending',
-        })
-        .select()
-        .single()
+    if (docType === 'capital_call') {
+      // Claude sometimes returns an enriched "other"-style format with alternative
+      // field names. Normalise before writing so no valid capital call is dropped.
+      const fund_name = data.fund_name || data.fund || data.partnership_name || null
 
-      if (error) throw error
-      results.capital_call = inserted
+      // Amount may be top-level or buried in a key_amounts array
+      const amount = data.amount != null
+        ? data.amount
+        : Array.isArray(data.key_amounts)
+          ? (data.key_amounts.find(k => /this call|current call|call amount|capital call #/i.test(k.label))?.amount
+            ?? data.key_amounts.find(k => k.amount > 0 && !/commitment|remaining|prior/i.test(k.label))?.amount
+            ?? null)
+          : null
+
+      // Due date may be top-level or in key_dates
+      const due_date = data.due_date != null
+        ? data.due_date
+        : Array.isArray(data.key_dates)
+          ? (data.key_dates.find(k => /due|payment/i.test(k.label))?.date ?? null)
+          : null
+
+      // Unfunded remaining
+      const unfunded_remaining = data.unfunded_remaining != null
+        ? data.unfunded_remaining
+        : Array.isArray(data.key_amounts)
+          ? (data.key_amounts.find(k => /unfunded|remaining after/i.test(k.label))?.amount ?? null)
+          : null
+
+      // Total commitment
+      const total_commitment = data.total_commitment != null
+        ? data.total_commitment
+        : Array.isArray(data.key_amounts)
+          ? (data.key_amounts.find(k => /total.*commit|lp.*commit/i.test(k.label))?.amount ?? null)
+          : null
+
+      if (fund_name && amount != null) {
+        const { data: inserted, error } = await supabase
+          .from('capital_calls')
+          .upsert({
+            client_id: clientId,
+            document_id: documentId,
+            fund_name,
+            manager: data.manager || (Array.isArray(data.entities) ? data.entities[0] : null),
+            amount,
+            due_date,
+            call_number: data.call_number || null,
+            unfunded_remaining,
+            status: 'pending',
+          })
+          .select()
+          .single()
+
+        if (error) throw error
+        results.capital_call = inserted
+      }
     }
 
     if ((docType === 'alt_statement' || docType === 'performance') && data.fund_name) {
