@@ -123,6 +123,22 @@ export const PORTAL_DATA = {
         { fund: 'PIMCO Income',            status: 'received', date: 'Mar 1, 2026' },
       ],
     },
+
+    holdings: [
+      { name: 'Blackstone Real Estate XI',  type: 'Real Estate',    color: '#a78bfa', value: 8_420_000,  pct: 19.9, ret: 18.2, retLabel: 'IRR',        tvpi: 1.82, vintage: '2021', status: 'active'  },
+      { name: 'KKR Americas XIV',           type: 'Private Equity', color: '#3b82f6', value: 6_800_000,  pct: 16.1, ret: 16.8, retLabel: 'IRR',        tvpi: 1.68, vintage: '2022', status: 'active'  },
+      { name: 'Harrison Street Core RE',    type: 'Real Estate',    color: '#a78bfa', value: 4_220_000,  pct:  9.9, ret: 14.8, retLabel: 'IRR',        tvpi: 1.56, vintage: '2020', status: 'active'  },
+      { name: 'Bridgewater All Weather',    type: 'Hedge Fund',     color: '#14b8a6', value: 3_800_000,  pct:  9.0, ret:  8.9, retLabel: 'Net Return', tvpi: null, vintage: '2019', status: 'active'  },
+      { name: 'KKR Americas XII',           type: 'Private Equity', color: '#3b82f6', value: 3_500_000,  pct:  8.3, ret: 22.4, retLabel: 'IRR',        tvpi: 2.24, vintage: '2018', status: 'active'  },
+      { name: 'PIMCO Income',               type: 'Fixed Income',   color: '#f59e0b', value: 2_620_000,  pct:  6.2, ret:  5.8, retLabel: 'YTD',        tvpi: null, vintage: null,   status: 'active'  },
+      { name: 'Blackstone RE IX',           type: 'Real Estate',    color: '#a78bfa', value: 2_400_000,  pct:  5.7, ret: 20.1, retLabel: 'IRR',        tvpi: 2.01, vintage: '2018', status: 'mature'  },
+      { name: 'Bridgewater Pure Alpha',     type: 'Hedge Fund',     color: '#14b8a6', value: 1_700_000,  pct:  4.0, ret:  9.2, retLabel: 'Net Return', tvpi: null, vintage: '2021', status: 'active'  },
+      { name: 'JP Morgan Core Bond',        type: 'Fixed Income',   color: '#f59e0b', value: 1_600_000,  pct:  3.8, ret:  5.2, retLabel: 'YTD',        tvpi: null, vintage: null,   status: 'active'  },
+      { name: 'Harrison St. RE Fund II',    type: 'Real Estate',    color: '#a78bfa', value: 1_500_000,  pct:  3.5, ret: 18.4, retLabel: 'IRR',        tvpi: 1.84, vintage: '2020', status: 'active'  },
+      { name: 'KKR Americas XI',            type: 'Private Equity', color: '#3b82f6', value: 1_200_000,  pct:  2.8, ret: 24.8, retLabel: 'IRR',        tvpi: 2.48, vintage: '2015', status: 'mature'  },
+      { name: 'Blackstone RE VIII',         type: 'Real Estate',    color: '#a78bfa', value:   900_000,  pct:  2.1, ret: 21.8, retLabel: 'IRR',        tvpi: 2.18, vintage: '2015', status: 'mature'  },
+      { name: 'Money Market / Cash',        type: 'Cash',           color: '#55556a', value: 2_540_000,  pct:  6.0, ret:  5.2, retLabel: 'Yield',      tvpi: null, vintage: null,   status: 'active'  },
+    ],
   },
 
   // ─── Meridian Capital Partners ────────────────────────────────────────────
@@ -240,6 +256,18 @@ export const PORTAL_DATA = {
         { fund: 'Oaktree Credit IV',    status: 'pending',  date: null },
       ],
     },
+
+    holdings: [
+      { name: 'Apollo Global XVI',       type: 'Private Equity', color: '#3b82f6', value: 10_820_000, pct: 28.4, ret: 18.4, retLabel: 'IRR',        tvpi: 1.92, vintage: '2022', status: 'active'  },
+      { name: 'Carlyle Fund VIII',        type: 'Private Equity', color: '#3b82f6', value:  8_640_000, pct: 22.7, ret: 16.8, retLabel: 'IRR',        tvpi: 1.76, vintage: '2021', status: 'active'  },
+      { name: 'Vista Equity VII',         type: 'Private Equity', color: '#3b82f6', value:  7_200_000, pct: 18.9, ret: 21.2, retLabel: 'IRR',        tvpi: 1.88, vintage: '2021', status: 'active'  },
+      { name: 'Ares RE Fund IV',          type: 'Real Estate',    color: '#a78bfa', value:  3_420_000, pct:  9.0, ret: 13.5, retLabel: 'IRR',        tvpi: 1.50, vintage: '2020', status: 'active'  },
+      { name: 'Oaktree Credit IV',        type: 'Credit',         color: '#f59e0b', value:  2_860_000, pct:  7.5, ret:  9.8, retLabel: 'Net Return', tvpi: null, vintage: '2019', status: 'active'  },
+      { name: 'Apollo Global XIV',        type: 'Private Equity', color: '#3b82f6', value:  2_100_000, pct:  5.5, ret: 26.4, retLabel: 'IRR',        tvpi: 2.64, vintage: '2016', status: 'mature'  },
+      { name: 'Carlyle Fund VI',          type: 'Private Equity', color: '#3b82f6', value:  1_520_000, pct:  4.0, ret: 24.8, retLabel: 'IRR',        tvpi: 2.48, vintage: '2016', status: 'mature'  },
+      { name: 'Oaktree Credit III',       type: 'Credit',         color: '#f59e0b', value:    760_000, pct:  2.0, ret: 11.2, retLabel: 'Net Return', tvpi: null, vintage: '2017', status: 'mature'  },
+      { name: 'Money Market / Cash',      type: 'Cash',           color: '#55556a', value:  2_286_000, pct:  6.0, ret:  5.2, retLabel: 'Yield',      tvpi: null, vintage: null,   status: 'active'  },
+    ],
   },
 
   // ─── Okonkwo Family Trust ─────────────────────────────────────────────────
@@ -348,6 +376,18 @@ export const PORTAL_DATA = {
         { fund: 'Blackstone Credit IV',status: 'pending',  date: null },
       ],
     },
+
+    holdings: [
+      { name: 'Citadel Wellington',      type: 'Hedge Fund',     color: '#14b8a6', value:  7_640_000, pct: 26.9, ret: 12.4, retLabel: 'Net Return', tvpi: null, vintage: '2019', status: 'active'  },
+      { name: 'Millennium Partners',     type: 'Hedge Fund',     color: '#14b8a6', value:  5_920_000, pct: 20.8, ret: 11.8, retLabel: 'Net Return', tvpi: null, vintage: '2020', status: 'active'  },
+      { name: 'Two Sigma Spectrum',      type: 'Hedge Fund',     color: '#14b8a6', value:  4_240_000, pct: 14.9, ret: 10.2, retLabel: 'Net Return', tvpi: null, vintage: '2021', status: 'active'  },
+      { name: 'TPG Rise Climate II',     type: 'Private Equity', color: '#3b82f6', value:  2_980_000, pct: 10.5, ret: 14.8, retLabel: 'IRR',        tvpi: 1.42, vintage: '2022', status: 'active'  },
+      { name: 'Blackstone Credit IV',    type: 'Credit',         color: '#f59e0b', value:  2_560_000, pct:  9.0, ret:  8.4, retLabel: 'Net Return', tvpi: null, vintage: '2021', status: 'active'  },
+      { name: 'D.E. Shaw Composite',     type: 'Hedge Fund',     color: '#14b8a6', value:  1_840_000, pct:  6.5, ret: 13.6, retLabel: 'Net Return', tvpi: null, vintage: '2020', status: 'active'  },
+      { name: 'Oaktree Credit III',      type: 'Credit',         color: '#f59e0b', value:    840_000, pct:  3.0, ret: 10.8, retLabel: 'Net Return', tvpi: null, vintage: '2018', status: 'mature'  },
+      { name: 'TPG Rise Climate I',      type: 'Private Equity', color: '#3b82f6', value:    640_000, pct:  2.3, ret: 18.4, retLabel: 'IRR',        tvpi: 1.84, vintage: '2019', status: 'mature'  },
+      { name: 'Money Market / Cash',     type: 'Cash',           color: '#55556a', value:  3_408_000, pct: 12.0, ret:  5.2, retLabel: 'Yield',      tvpi: null, vintage: null,   status: 'active'  },
+    ],
   },
 
   // ─── Park & Lee Family Office ─────────────────────────────────────────────
@@ -458,6 +498,21 @@ export const PORTAL_DATA = {
         { fund: 'iShares Core',          status: 'received', date: 'Feb 14, 2026' },
       ],
     },
+
+    holdings: [
+      { name: 'iShares Core S&P 500',     type: 'Equity',         color: '#22c55e', value:  8_620_000, pct: 24.2, ret: 14.2, retLabel: 'YTD',        tvpi: null, vintage: null,   status: 'active'  },
+      { name: 'JP Morgan PE Partners',    type: 'Private Equity', color: '#3b82f6', value:  5_460_000, pct: 15.3, ret: 14.8, retLabel: 'IRR',        tvpi: 1.70, vintage: '2020', status: 'active'  },
+      { name: 'Nuveen Real Estate',       type: 'Real Estate',    color: '#a78bfa', value:  3_840_000, pct: 10.8, ret: 11.2, retLabel: 'IRR',        tvpi: 1.50, vintage: '2021', status: 'active'  },
+      { name: 'Vanguard Total Mkt ETF',   type: 'Equity',         color: '#22c55e', value:  3_520_000, pct:  9.9, ret: 13.8, retLabel: 'YTD',        tvpi: null, vintage: null,   status: 'active'  },
+      { name: 'PGIM Credit Fund III',     type: 'Credit',         color: '#f59e0b', value:  2_840_000, pct:  8.0, ret:  8.2, retLabel: 'Net Return', tvpi: null, vintage: '2020', status: 'active'  },
+      { name: 'JP Morgan PE II',          type: 'Private Equity', color: '#3b82f6', value:  2_180_000, pct:  6.1, ret: 18.4, retLabel: 'IRR',        tvpi: 1.84, vintage: '2018', status: 'active'  },
+      { name: 'Nuveen RE Fund I',         type: 'Real Estate',    color: '#a78bfa', value:  1_860_000, pct:  5.2, ret: 16.2, retLabel: 'IRR',        tvpi: 1.62, vintage: '2018', status: 'mature'  },
+      { name: 'PGIM Credit Fund II',      type: 'Credit',         color: '#f59e0b', value:  1_420_000, pct:  4.0, ret: 10.4, retLabel: 'Net Return', tvpi: null, vintage: '2017', status: 'mature'  },
+      { name: 'iShares MSCI World',       type: 'Equity',         color: '#22c55e', value:  1_200_000, pct:  3.4, ret: 12.6, retLabel: 'YTD',        tvpi: null, vintage: null,   status: 'active'  },
+      { name: 'JP Morgan Core Plus Bond', type: 'Credit',         color: '#f59e0b', value:    920_000, pct:  2.6, ret:  6.4, retLabel: 'YTD',        tvpi: null, vintage: null,   status: 'active'  },
+      { name: 'Morgan Stanley Growth',    type: 'Equity',         color: '#22c55e', value:    820_000, pct:  2.3, ret: 16.8, retLabel: 'YTD',        tvpi: null, vintage: null,   status: 'active'  },
+      { name: 'Money Market / Cash',      type: 'Cash',           color: '#55556a', value:  2_136_000, pct:  6.0, ret:  5.2, retLabel: 'Yield',      tvpi: null, vintage: null,   status: 'active'  },
+    ],
   },
 
   // ─── Rosenberg Family Trust ───────────────────────────────────────────────
@@ -556,7 +611,7 @@ export const PORTAL_DATA = {
     ],
 
     tax: {
-      year: 2025,
+      year: 2026,
       totalEstimated: 164_800,
       effectiveRate:  23.2,
       income: [
@@ -574,5 +629,20 @@ export const PORTAL_DATA = {
         { fund: 'Vanguard Total Market', status: 'received', date: 'Feb 10, 2026' },
       ],
     },
+
+    holdings: [
+      { name: 'Blackstone RE Fund X',    type: 'Real Estate',    color: '#a78bfa', value: 10_200_000, pct: 29.1, ret: 16.2, retLabel: 'IRR',        tvpi: 1.82, vintage: '2020', status: 'active'  },
+      { name: 'Starwood Capital V',      type: 'Real Estate',    color: '#a78bfa', value:  7_420_000, pct: 21.2, ret: 14.8, retLabel: 'IRR',        tvpi: 1.74, vintage: '2021', status: 'active'  },
+      { name: 'Ares Capital VII',        type: 'Credit',         color: '#f59e0b', value:  3_640_000, pct: 10.4, ret: 10.8, retLabel: 'Net Return', tvpi: null, vintage: '2020', status: 'active'  },
+      { name: 'Hamilton Lane Securities',type: 'Private Equity', color: '#3b82f6', value:  2_980_000, pct:  8.5, ret: 13.2, retLabel: 'IRR',        tvpi: 1.52, vintage: '2021', status: 'active'  },
+      { name: 'Vanguard Total Market',   type: 'Equity',         color: '#22c55e', value:  2_380_000, pct:  6.8, ret: 13.8, retLabel: 'YTD',        tvpi: null, vintage: null,   status: 'active'  },
+      { name: 'Starwood Capital IV',     type: 'Real Estate',    color: '#a78bfa', value:  2_100_000, pct:  6.0, ret: 21.4, retLabel: 'IRR',        tvpi: 2.14, vintage: '2017', status: 'mature'  },
+      { name: 'Ares Capital VI',         type: 'Credit',         color: '#f59e0b', value:  1_560_000, pct:  4.5, ret: 12.2, retLabel: 'Net Return', tvpi: null, vintage: '2018', status: 'mature'  },
+      { name: 'Blackstone RE VIII',      type: 'Real Estate',    color: '#a78bfa', value:  1_200_000, pct:  3.4, ret: 22.8, retLabel: 'IRR',        tvpi: 2.28, vintage: '2016', status: 'mature'  },
+      { name: 'iShares MSCI World',      type: 'Equity',         color: '#22c55e', value:    820_000, pct:  2.3, ret: 12.6, retLabel: 'YTD',        tvpi: null, vintage: null,   status: 'active'  },
+      { name: 'Ares Capital V',          type: 'Credit',         color: '#f59e0b', value:    560_000, pct:  1.6, ret: 14.4, retLabel: 'Net Return', tvpi: null, vintage: '2016', status: 'mature'  },
+      { name: 'Hamilton Lane Sec. II',   type: 'Private Equity', color: '#3b82f6', value:    480_000, pct:  1.4, ret: 16.8, retLabel: 'IRR',        tvpi: 1.68, vintage: '2022', status: 'active'  },
+      { name: 'Money Market / Cash',     type: 'Cash',           color: '#55556a', value:  3_150_000, pct:  9.0, ret:  5.2, retLabel: 'Yield',      tvpi: null, vintage: null,   status: 'active'  },
+    ],
   },
 }
