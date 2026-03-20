@@ -5,10 +5,12 @@ import Dashboard from './components/Dashboard'
 import CapitalCalls from './components/CapitalCalls'
 import Reports from './components/Reports'
 import Upload from './components/Upload'
+import AdvisorHome from './components/AdvisorHome'
 import { fetchClients } from './lib/db'
 import { clients as mockClients } from './data/mockData'
 
 const PAGE_TITLES = {
+  home:    'Advisor Overview',
   dash:    'Portfolio Overview',
   calls:   'Capital Calls',
   reports: 'Report Builder',
@@ -16,7 +18,7 @@ const PAGE_TITLES = {
 }
 
 export default function App() {
-  const [view, setView]           = useState('dash')
+  const [view, setView]           = useState('home')
   const [clients, setClients]     = useState(mockClients.map(name => ({ id: null, name })))
   const [clientIdx, setClientIdx] = useState(0)
   const [dbReady, setDbReady]     = useState(false)
@@ -32,7 +34,17 @@ export default function App() {
       .catch(() => {})
   }, [])
 
+  const isHome = view === 'home'
   const activeClient = clients[clientIdx] || clients[0]
+
+  function selectClient(idx) {
+    setClientIdx(idx)
+    setView('dash')
+  }
+
+  function goHome() {
+    setView('home')
+  }
 
   return (
     <div style={{ display: 'flex', height: '100vh', overflow: 'hidden' }}>
@@ -42,15 +54,34 @@ export default function App() {
         clients={clients}
         clientIdx={clientIdx}
         setClientIdx={setClientIdx}
+        isHome={isHome}
+        onGoHome={isHome ? () => {} : goHome}
       />
 
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+        {/* Topbar */}
         <div style={{
           display: 'flex', alignItems: 'center',
           padding: '14px 24px', borderBottom: '1px solid var(--bdr)',
           background: 'var(--bg)', flexShrink: 0,
         }}>
           <div>
+            {/* Back breadcrumb when in client view */}
+            {!isHome && (
+              <div
+                onClick={goHome}
+                style={{
+                  display: 'inline-flex', alignItems: 'center', gap: 4,
+                  fontSize: 10, color: 'var(--tx3)', cursor: 'pointer',
+                  marginBottom: 3,
+                }}
+                onMouseEnter={e => e.currentTarget.style.color = 'var(--blue2)'}
+                onMouseLeave={e => e.currentTarget.style.color = 'var(--tx3)'}
+              >
+                <svg viewBox="0 0 10 10" width={9} height={9} fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M7 2L3 5l4 3"/></svg>
+                All Clients
+              </div>
+            )}
             <div style={{ fontSize: 18, fontWeight: 600, letterSpacing: '-0.5px' }}>{PAGE_TITLES[view]}</div>
             <div style={{ fontSize: 10, color: 'var(--tx3)', marginTop: 1, display: 'flex', alignItems: 'center', gap: 5 }}>
               <span style={{
@@ -58,7 +89,9 @@ export default function App() {
                 background: dbReady ? 'var(--green)' : 'var(--amber)',
                 display: 'inline-block', animation: 'pulse 2s infinite',
               }} />
-              {dbReady ? 'Live · Supabase connected' : 'Demo mode'} · {activeClient?.name}
+              {dbReady ? 'Live · Supabase connected' : 'Demo mode'}
+              {!isHome && <> · {activeClient?.name}</>}
+              {isHome && <> · 5 clients · $178.8M AUM</>}
             </div>
           </div>
           <div style={{ marginLeft: 'auto', display: 'flex', gap: 8 }}>
@@ -73,9 +106,10 @@ export default function App() {
           </div>
         </div>
 
-        {view !== 'upload' && <NLQBar />}
+        {view !== 'upload' && view !== 'home' && <NLQBar />}
 
         <div style={{ flex: 1, overflowY: 'auto' }}>
+          {view === 'home'    && <AdvisorHome onSelectClient={selectClient} />}
           {view === 'dash'    && <Dashboard onGoToCalls={() => setView('calls')} activeClient={activeClient} />}
           {view === 'calls'   && <CapitalCalls activeClient={activeClient} />}
           {view === 'reports' && <Reports />}
