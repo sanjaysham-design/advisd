@@ -240,7 +240,7 @@ export default function ClientCashFlow({ data, clientName }) {
       {/* ── Portfolio Liquidity ───────────────────────────────────────────── */}
       {data.holdings?.length > 0 && (
         <div style={{ marginTop: 24 }}>
-          <LiquidityWidget holdings={data.holdings} />
+          <LiquidityWidget holdings={data.holdings} clientTheme />
         </div>
       )}
     </div>
