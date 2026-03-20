@@ -95,7 +95,9 @@ export default function ClientCashFlow({ data, clientName }) {
               />
               <ReferenceLine y={0} stroke="rgba(255,255,255,0.1)" />
               <Tooltip
-                contentStyle={{ background: C.card2, border: `1px solid ${C.bdr2}`, borderRadius: 10, fontSize: 12 }}
+                contentStyle={{ background: C.card2, border: `1px solid ${C.bdr2}`, borderRadius: 10, fontSize: 12, color: C.tx }}
+                itemStyle={{ color: C.tx }}
+                labelStyle={{ color: C.tx2 }}
                 formatter={(v, n) => [
                   `$${Math.abs(v).toFixed(2)}M`,
                   n === 'calls' ? 'Capital Call (outflow)' : 'Distribution (inflow)',

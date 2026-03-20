@@ -142,7 +142,9 @@ export default function ClientTax({ data, clientName }) {
                   ))}
                 </Pie>
                 <Tooltip
-                  contentStyle={{ background: C.card2, border: `1px solid ${C.bdr2}`, borderRadius: 10, fontSize: 12 }}
+                  contentStyle={{ background: C.card2, border: `1px solid ${C.bdr2}`, borderRadius: 10, fontSize: 12, color: C.tx }}
+                  itemStyle={{ color: C.tx }}
+                  labelStyle={{ color: C.tx2 }}
                   formatter={v => [fmt$(v), '']}
                 />
               </PieChart>

@@ -205,7 +205,9 @@ export default function ClientPME({ data, clientName }) {
                 tick={{ fill: C.tx3, fontSize: 10 }} tickLine={false} axisLine={false}
               />
               <Tooltip
-                contentStyle={{ background: C.card2, border: `1px solid ${C.bdr2}`, borderRadius: 10, fontSize: 12 }}
+                contentStyle={{ background: C.card2, border: `1px solid ${C.bdr2}`, borderRadius: 10, fontSize: 12, color: C.tx }}
+                itemStyle={{ color: C.tx }}
+                labelStyle={{ color: C.tx2 }}
                 formatter={(v, n) => [fmt$M(v * 1_000_000), n === 'portfolio' ? 'Your Portfolio' : bm.label]}
               />
               <Area dataKey="portfolio" type="monotone" stroke={C.acc}    strokeWidth={2.5} fill="url(#portGrad)"  dot={false} />
