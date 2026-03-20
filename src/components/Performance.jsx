@@ -3,6 +3,7 @@ import {
   ComposedChart, AreaChart, Area, BarChart, Bar, Line, XAxis, YAxis,
   CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine, Cell, Legend,
 } from 'recharts'
+import { useMobile } from '../lib/useMobile'
 
 // ── Per-client performance profiles ──────────────────────────────────────────
 const PROFILES = {
@@ -355,6 +356,7 @@ const PERIODS = ['YTD', '1 Year', '3 Year', 'Since Inception']
 export default function Performance({ activeClient }) {
   const name    = activeClient?.name ?? FALLBACK
   const profile = PROFILES[name] ?? PROFILES[FALLBACK]
+  const isMobile = useMobile()
 
   const [navPeriod, setNavPeriod] = useState('full')
 
@@ -392,10 +394,10 @@ export default function Performance({ activeClient }) {
   })
 
   return (
-    <div style={{ padding: '24px 28px', animation: 'fadeUp 0.3s ease' }}>
+    <div style={{ padding: isMobile ? '14px 14px' : '24px 28px', animation: 'fadeUp 0.3s ease' }}>
 
       {/* ── Period return KPIs ── */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 14, marginBottom: 24 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)', gap: isMobile ? 10 : 14, marginBottom: 24 }}>
         {[
           { label: 'YTD Return',        port: profile.ytd,   bench: profile.benchmark.ytd },
           { label: '1-Year Return',     port: profile.yr1,   bench: profile.benchmark.yr1 },
@@ -428,7 +430,7 @@ export default function Performance({ activeClient }) {
 
       {/* ── Section 1: NAV index / return timeline ── */}
       <div style={{ background: 'var(--bg2)', border: '1px solid var(--bdr)', borderRadius: 14, padding: '18px 20px', marginBottom: 22 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16, flexWrap: 'wrap', gap: 8 }}>
           <div>
             <div style={{ fontSize: 12, fontWeight: 600 }}>Return Timeline (Base 100)</div>
             <div style={{ fontSize: 10, color: 'var(--tx3)', marginTop: 2 }}>
@@ -469,7 +471,7 @@ export default function Performance({ activeClient }) {
       </div>
 
       {/* ── Sections 2 & 3: Attribution + PME side by side ── */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 18, marginBottom: 22 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 18, marginBottom: 22 }}>
 
         {/* Attribution */}
         <div style={{ background: 'var(--bg2)', border: '1px solid var(--bdr)', borderRadius: 14, padding: '18px 20px' }}>
