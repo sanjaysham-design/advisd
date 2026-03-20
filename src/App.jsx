@@ -11,6 +11,7 @@ import DriftMonitor from './components/DriftMonitor'
 import FeeTracking from './components/FeeTracking'
 import VintageBenchmark from './components/VintageBenchmark'
 import MeetingPrep from './components/MeetingPrep'
+import DocCalendar from './components/DocCalendar'
 import { fetchClients } from './lib/db'
 import { clients as mockClients } from './data/mockData'
 
@@ -23,6 +24,7 @@ const PAGE_TITLES = {
   fees:      'Fee Tracking',
   vintage:   'Vintage Year Benchmarking',
   meeting:   'Meeting Prep',
+  doccal:    'Document & Reporting Calendar',
   reports:   'Report Builder',
   upload:    'Document Upload',
 }
@@ -127,6 +129,7 @@ export default function App() {
           {view === 'fees'      && <FeeTracking activeClient={activeClient} />}
           {view === 'vintage'   && <VintageBenchmark activeClient={activeClient} />}
           {view === 'meeting'   && <MeetingPrep activeClient={activeClient} />}
+          {view === 'doccal'    && <DocCalendar activeClient={activeClient} />}
           {view === 'reports' && <Reports />}
           {view === 'upload'  && <Upload clientId={activeClient?.id} clientName={activeClient?.name} />}
         </div>
