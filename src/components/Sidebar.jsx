@@ -6,16 +6,14 @@ const CLIENT_NAV = [
     items: [
       { label: 'Dashboard',   view: 'dash',    icon: 'grid' },
       { label: 'Performance', view: 'dash',    icon: 'trend' },
-      { label: 'Timeline',    view: 'dash',    icon: 'clock' },
     ],
   },
   {
     section: 'Alternatives',
     items: [
-      { label: 'Capital Calls',       view: 'calls',     icon: 'calendar', badge: 3 },
+      { label: 'Capital Calls',        view: 'calls',     icon: 'calendar', badge: 3 },
       { label: 'Liquidity Management', view: 'liquidity', icon: 'drop' },
       { label: 'Fee Tracking',         view: 'fees',      icon: 'coin' },
-      { label: 'Cash Flows',           view: 'dash',      icon: 'flow' },
     ],
   },
   {
@@ -23,8 +21,6 @@ const CLIENT_NAV = [
     items: [
       { label: 'Drift Monitor',        view: 'drift',   icon: 'target' },
       { label: 'Vintage Benchmarking', view: 'vintage', icon: 'bar' },
-      { label: 'Risk & Exposure',      view: 'dash',    icon: 'shield' },
-      { label: 'Scenarios',            view: 'dash',    icon: 'branch' },
     ],
   },
   {
@@ -33,7 +29,6 @@ const CLIENT_NAV = [
       { label: 'Report Builder', view: 'reports', icon: 'doc' },
       { label: 'Meeting Prep',   view: 'meeting', icon: 'people' },
       { label: 'Doc Calendar',   view: 'doccal',  icon: 'calendar2' },
-      { label: 'Scheduler',      view: 'dash',    icon: 'schedule' },
     ],
   },
   {
