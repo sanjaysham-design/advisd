@@ -5,9 +5,8 @@ const CHIPS = [
   'What capital calls are due soon?',
   'Which funds have the highest IRR?',
   "What's the unfunded commitment total?",
-  'How is the portfolio allocated?',
   'Compare YTD return to S&P 500',
-  "Summarise this client's performance",
+  'Summarize performance',
 ]
 
 export default function NLQBar({ activeClient }) {
