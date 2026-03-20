@@ -9,9 +9,16 @@ const fmt$M = v => `$${(Math.abs(v) / 1_000_000).toFixed(2)}M`
 const fmt$K = v => `$${(Math.abs(v) / 1_000).toFixed(0)}K`
 const fmtAmt = v => Math.abs(v) >= 1_000_000 ? fmt$M(v) : fmt$K(v)
 
+// Parse 'YYYY-MM-DD' as local midnight (not UTC) to avoid off-by-one day in US timezones
+function localDate(dateStr) {
+  if (!dateStr) return new Date()
+  const [y, m, d] = dateStr.split('-').map(Number)
+  return new Date(y, m - 1, d)
+}
+
 function daysUntil(dateStr) {
-  const due = new Date(dateStr)
-  const now = new Date('2026-03-19')
+  const due = localDate(dateStr)
+  const now = localDate('2026-03-20')
   return Math.ceil((due - now) / (1000 * 60 * 60 * 24))
 }
 
@@ -64,7 +71,7 @@ export default function ClientCashFlow({ data, clientName }) {
                 <div style={{ fontSize: 16, fontWeight: 700, color: C.tx }}>{fmtAmt(nextCall.amount)}</div>
                 <div style={{ fontSize: 11, color: C.tx2, marginTop: 3 }}>{nextCall.fund}</div>
                 <div style={{ fontSize: 11, color: C.amb, marginTop: 3 }}>
-                  {daysUntil(nextCall.due)} days · {new Date(nextCall.due).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                  {daysUntil(nextCall.due)} days · {localDate(nextCall.due).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                 </div>
               </div>
             )}
@@ -183,7 +190,7 @@ export default function ClientCashFlow({ data, clientName }) {
                   <div style={{ marginTop: 8 }}>
                     <UrgencyBar days={days} />
                     <div style={{ fontSize: 10, color: C.tx3, marginTop: 4 }}>
-                      Due {new Date(call.due).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+                      Due {localDate(call.due).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
                     </div>
                   </div>
                 </div>
@@ -217,7 +224,7 @@ export default function ClientCashFlow({ data, clientName }) {
               <div>
                 <div style={{ fontSize: 13, fontWeight: 500 }}>{d.fund}</div>
                 <div style={{ fontSize: 11, color: C.tx3, marginTop: 2 }}>
-                  {new Date(d.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                  {localDate(d.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                 </div>
               </div>
               <div style={{ textAlign: 'right' }}>
