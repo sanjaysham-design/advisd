@@ -40,9 +40,16 @@ export default function App() {
 
   useEffect(() => {
     fetchClients()
-      .then(data => {
-        if (data && data.length > 0) {
-          setClients(data)
+      .then(liveData => {
+        if (liveData && liveData.length > 0) {
+          // Merge: keep all 5 canonical clients; enrich with real Supabase ID when a name matches.
+          // This prevents Supabase from collapsing the list to only the clients stored in the DB.
+          setClients(prev =>
+            prev.map(mc => {
+              const live = liveData.find(c => c.name === mc.name)
+              return live ? { ...mc, ...live } : mc
+            })
+          )
           setDbReady(true)
         }
       })
