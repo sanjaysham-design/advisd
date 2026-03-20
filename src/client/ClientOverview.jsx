@@ -129,6 +129,7 @@ export default function ClientOverview({ data, clientName }) {
                 />
                 <Tooltip
                   contentStyle={{ background: C.card2, border: `1px solid ${C.bdr2}`, borderRadius: 10, fontSize: 12, color: C.tx }}
+                  itemStyle={{ color: C.tx }}
                   labelStyle={{ color: C.tx2 }}
                   formatter={v => [fmt$M(v), 'Portfolio Value']}
                 />
@@ -169,6 +170,7 @@ export default function ClientOverview({ data, clientName }) {
                 </Pie>
                 <Tooltip
                   contentStyle={{ background: C.card2, border: `1px solid ${C.bdr2}`, borderRadius: 10, fontSize: 12, color: C.tx }}
+                  itemStyle={{ color: C.tx }}
                   labelStyle={{ color: C.tx2 }}
                   formatter={(v, n) => [`${v}%`, n]}
                 />
