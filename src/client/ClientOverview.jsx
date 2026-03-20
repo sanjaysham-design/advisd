@@ -148,16 +148,16 @@ export default function ClientOverview({ data, clientName }) {
         <div style={{ background: C.card, border: `1px solid ${C.bdr}`, borderRadius: 20, padding: 24, display: 'flex', flexDirection: 'column' }}>
           <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 4 }}>Allocation</div>
           <div style={{ fontSize: 12, color: C.tx2, marginBottom: 16 }}>How your money is invested</div>
-          <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', height: 160 }}>
+          <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', height: 190 }}>
             <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
+              <PieChart margin={{ top: 10, right: 10, bottom: 10, left: 10 }}>
                 <Pie
                   data={data.allocation}
                   dataKey="pct"
                   nameKey="name"
                   cx="50%" cy="50%"
-                  innerRadius={42}
-                  outerRadius={62}
+                  innerRadius={40}
+                  outerRadius={58}
                   paddingAngle={2}
                   startAngle={90}
                   endAngle={-270}
