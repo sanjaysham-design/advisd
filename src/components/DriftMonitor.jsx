@@ -169,7 +169,13 @@ export default function DriftMonitor({ activeClient }) {
 
   // Rebalancing actions — what to trade to get back to target
   const rebalActions = CLASSES
-    .map(c => ({ ...c, drift: actual[c.key] - targets[c.key], dollarDrift: (actual[c.key] - targets[c.key]) / 100 * aum }))
+    .map(c => ({
+      ...c,
+      drift:     actual[c.key] - targets[c.key],
+      dollarDrift: (actual[c.key] - targets[c.key]) / 100 * aum,
+      actualPct: actual[c.key],
+      targetPct: targets[c.key],
+    }))
     .filter(c => Math.abs(c.drift) >= 0.5)
     .sort((a, b) => Math.abs(b.drift) - Math.abs(a.drift))
 
@@ -475,7 +481,7 @@ function RebalRow({ cls, aum, dir }) {
       <div style={{ flex: 1 }}>
         <div style={{ fontSize: 12, fontWeight: 500 }}>{cls.label}</div>
         <div style={{ fontSize: 9, color: 'var(--tx3)' }}>
-          {dir === 'sell' ? 'Reduce' : 'Increase'} from {cls.actual[cls.key] ?? (parseFloat((cls.targets?.[cls.key] ?? 0) + cls.drift).toFixed(1))}% → {cls.targets?.[cls.key] ?? '—'}%
+          {dir === 'sell' ? 'Reduce' : 'Increase'} from {cls.actualPct.toFixed(1)}% → {cls.targetPct.toFixed(1)}%
         </div>
       </div>
       <div style={{ textAlign: 'right' }}>
