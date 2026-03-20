@@ -53,15 +53,27 @@ export async function uploadDocument(file, clientId, docType) {
 }
 
 export async function deleteDocument(docId, filePath) {
+  // Remove FK children first (capital_calls and holdings reference document_id)
+  await supabase.from('capital_calls').delete().eq('document_id', docId)
+  await supabase.from('holdings').delete().eq('document_id', docId)
+
   // Delete from storage
   await supabase.storage.from('documents').remove([filePath])
 
-  // Delete from DB (cascades to capital_calls etc via document_id)
+  // Delete document row
   const { error } = await supabase
     .from('documents')
     .delete()
     .eq('id', docId)
 
+  if (error) throw error
+}
+
+export async function updateDocumentType(docId, docType) {
+  const { error } = await supabase
+    .from('documents')
+    .update({ doc_type: docType })
+    .eq('id', docId)
   if (error) throw error
 }
 

@@ -1,5 +1,5 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react'
-import { uploadDocument, fetchDocuments, deleteDocument, getDocumentUrl } from '../lib/db'
+import { uploadDocument, fetchDocuments, deleteDocument, getDocumentUrl, updateDocumentType } from '../lib/db'
 
 const DOC_TYPES = [
   { value: 'capital_call',  label: 'Capital Call Notice' },
@@ -40,7 +40,7 @@ export default function Upload({ clientId, clientName }) {
   const [loading, setLoading] = useState(true)
   const [dragging, setDragging] = useState(false)
   const [uploads, setUploads] = useState([]) // in-progress
-  const [docType, setDocType] = useState('capital_call')
+  const [docType, setDocType] = useState('other')
   const [filter, setFilter] = useState('all')
   const fileRef = useRef()
 
@@ -130,6 +130,15 @@ export default function Upload({ clientId, clientName }) {
       setDocs(prev => prev.filter(d => d.id !== doc.id))
     } catch (e) {
       alert('Failed to delete: ' + e.message)
+    }
+  }
+
+  async function handleTypeChange(doc, newType) {
+    try {
+      await updateDocumentType(doc.id, newType)
+      setDocs(prev => prev.map(d => d.id === doc.id ? { ...d, doc_type: newType } : d))
+    } catch (e) {
+      alert('Failed to update type: ' + e.message)
     }
   }
 
@@ -279,7 +288,7 @@ export default function Upload({ clientId, clientName }) {
             </thead>
             <tbody>
               {filtered.map(doc => (
-                <DocRow key={doc.id} doc={doc} onDelete={handleDelete} onView={handleView} />
+                <DocRow key={doc.id} doc={doc} onDelete={handleDelete} onView={handleView} onTypeChange={handleTypeChange} />
               ))}
             </tbody>
           </table>
@@ -304,10 +313,15 @@ export default function Upload({ clientId, clientName }) {
   )
 }
 
-function DocRow({ doc, onDelete, onView }) {
+function DocRow({ doc, onDelete, onView, onTypeChange }) {
   const [hov, setHov] = useState(false)
+  const [editing, setEditing] = useState(false)
   const typeStyle = TYPE_COLORS[doc.doc_type] || TYPE_COLORS.other
-  const typeLabel = DOC_TYPES.find(t => t.value === doc.doc_type)?.label || 'Other'
+
+  function handleSelectChange(e) {
+    onTypeChange(doc, e.target.value)
+    setEditing(false)
+  }
 
   return (
     <tr
@@ -322,7 +336,29 @@ function DocRow({ doc, onDelete, onView }) {
         </div>
       </td>
       <td style={{ padding: '11px 16px', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
-        <span style={{ ...typeStyle, fontSize: 9, padding: '2px 8px', borderRadius: 5, fontWeight: 500 }}>{typeLabel}</span>
+        {editing ? (
+          <select
+            autoFocus
+            value={doc.doc_type}
+            onChange={handleSelectChange}
+            onBlur={() => setEditing(false)}
+            style={{
+              background: 'var(--surf)', border: '1px solid var(--bdr2)',
+              borderRadius: 5, color: 'var(--tx)', fontSize: 11,
+              padding: '3px 8px', cursor: 'pointer',
+            }}
+          >
+            {DOC_TYPES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
+          </select>
+        ) : (
+          <span
+            title="Click to change type"
+            onClick={() => setEditing(true)}
+            style={{ ...typeStyle, fontSize: 9, padding: '2px 8px', borderRadius: 5, fontWeight: 500, cursor: 'pointer' }}
+          >
+            {DOC_TYPES.find(t => t.value === doc.doc_type)?.label || 'Other'} ✎
+          </span>
+        )}
       </td>
       <td style={{ padding: '11px 16px', fontSize: 12, color: 'var(--tx2)', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
         {doc.client_name || '—'}
