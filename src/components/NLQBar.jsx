@@ -1,26 +1,70 @@
 import React, { useState } from 'react'
-import { nlqAnswers } from '../data/mockData'
+import { PORTAL_DATA } from '../client/clientData'
 
 const CHIPS = [
-  'Capital calls next 60 days',
-  'PE fund IRR',
-  'YTD vs benchmarks',
-  'Unfunded commitments',
-  'Risk by asset class',
-  'Top performing manager',
+  'What capital calls are due soon?',
+  'Which funds have the highest IRR?',
+  "What's the unfunded commitment total?",
+  'How is the portfolio allocated?',
+  'Compare YTD return to S&P 500',
+  "Summarise this client's performance",
 ]
 
-export default function NLQBar() {
-  const [query, setQuery] = useState('')
-  const [answer, setAnswer] = useState(null)
+export default function NLQBar({ activeClient }) {
+  const [query,   setQuery]   = useState('')
+  const [answer,  setAnswer]  = useState(null)
+  const [loading, setLoading] = useState(false)
 
-  function run(q) {
-    const key = q || query
-    const match = Object.keys(nlqAnswers).find(k =>
-      key.toLowerCase().includes(k.toLowerCase().substring(0, 10))
-    ) || Object.keys(nlqAnswers)[0]
-    setAnswer(nlqAnswers[match])
-    setQuery(key)
+  async function run(q) {
+    const question = q !== undefined ? q : query
+    if (!question.trim()) return
+
+    setLoading(true)
+    setAnswer(null)
+    if (q !== undefined) setQuery(q)
+
+    try {
+      const portalData = activeClient?.name ? PORTAL_DATA[activeClient.name] : null
+
+      const clientContext = {
+        name:     activeClient?.name || 'Unknown Client',
+        clientId: activeClient?.id   || null,
+        aum:       portalData?.aum,
+        irr:       portalData?.irr,
+        twrr:      portalData?.twrr,
+        ytdGain:   portalData?.ytdGain,
+        ytdPct:    portalData?.ytdPct,
+        inception: portalData?.inception,
+        allocation: portalData?.allocation,
+        holdings: portalData?.holdings?.slice(0, 10).map(h => ({
+          name: h.name, type: h.type, value: h.value,
+          pct: h.pct, ret: h.ret, retLabel: h.retLabel,
+          tvpi: h.tvpi, vintage: h.vintage,
+        })),
+        upcomingCalls:        portalData?.upcomingCalls,
+        recentDistributions:  portalData?.recentDistributions?.slice(0, 5),
+      }
+
+      const response = await fetch('/api/query', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ question, clientContext }),
+      })
+
+      if (!response.ok) throw new Error(`Server error (${response.status})`)
+
+      const data = await response.json()
+      setAnswer(data)
+    } catch (err) {
+      setAnswer({
+        title:  'Error',
+        body:   `Could not get an answer: <strong>${err.message}</strong>. Please try again.`,
+        rows:   null,
+        footer: null,
+      })
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -35,29 +79,46 @@ export default function NLQBar() {
           <input
             value={query}
             onChange={e => setQuery(e.target.value)}
-            onKeyDown={e => e.key === 'Enter' && run()}
+            onKeyDown={e => e.key === 'Enter' && !loading && run()}
             placeholder='Ask anything — e.g. "What capital calls are due in the next 60 days?"'
             style={{
               width: '100%', background: 'var(--surf)',
               border: '1px solid var(--bdr2)', borderRadius: 10,
               color: 'var(--tx)', fontSize: 13,
-              padding: '10px 90px 10px 38px', outline: 'none',
+              padding: '10px 100px 10px 38px', outline: 'none',
             }}
           />
           <button
-            onClick={() => run()}
+            onClick={() => !loading && run()}
             style={{
               position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)',
-              background: 'var(--blue)', border: 'none', borderRadius: 6,
-              color: '#fff', cursor: 'pointer', padding: '4px 12px',
-              fontSize: 11, fontWeight: 500,
+              background: loading ? 'var(--surf2)' : 'var(--blue)',
+              border: 'none', borderRadius: 6,
+              color: loading ? 'var(--tx2)' : '#fff',
+              cursor: loading ? 'default' : 'pointer',
+              padding: '4px 12px', fontSize: 11, fontWeight: 500,
+              display: 'flex', alignItems: 'center', gap: 5, minWidth: 68,
             }}
-          >Ask →</button>
+          >
+            {loading ? (
+              <>
+                <span style={{
+                  width: 10, height: 10,
+                  border: '1.5px solid var(--tx3)',
+                  borderTopColor: 'var(--tx2)',
+                  borderRadius: '50%',
+                  display: 'inline-block',
+                  animation: 'spin 0.7s linear infinite',
+                }} />
+                Thinking
+              </>
+            ) : 'Ask →'}
+          </button>
         </div>
 
         <div style={{ display: 'flex', gap: 6, marginTop: 8, flexWrap: 'wrap' }}>
           {CHIPS.map(chip => (
-            <Chip key={chip} label={chip} onClick={() => run(chip)} />
+            <Chip key={chip} label={chip} onClick={() => !loading && run(chip)} />
           ))}
         </div>
       </div>

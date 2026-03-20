@@ -138,7 +138,7 @@ export default function App() {
           </div>
         </div>
 
-        {view !== 'upload' && view !== 'home' && <NLQBar />}
+        {view !== 'upload' && view !== 'home' && <NLQBar activeClient={activeClient} />}
 
         <div style={{ flex: 1, overflowY: 'auto' }}>
           {view === 'home'    && <AdvisorHome onSelectClient={selectClient} clients={clients} />}
