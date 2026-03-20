@@ -5,6 +5,7 @@ import ClientOverview from './ClientOverview'
 import ClientCashFlow from './ClientCashFlow'
 import ClientPME from './ClientPME'
 import ClientTax from './ClientTax'
+import NLQBar from '../components/NLQBar'
 
 // ── Design tokens (client portal — distinct from advisor terminal) ────────────
 export const C = {
@@ -120,6 +121,13 @@ export default function ClientPortal({ token }) {
           </div>
         </div>
       </header>
+
+      {/* ── NLQ search bar ── */}
+      <div style={{ background: C.card, borderBottom: `1px solid ${C.bdr}` }}>
+        <div style={{ maxWidth: 1080, margin: '0 auto' }}>
+          <NLQBar activeClient={{ name: clientName, id: null }} />
+        </div>
+      </div>
 
       {/* ── Page content ── */}
       <main style={{ maxWidth: 1080, margin: '0 auto', padding: '36px 28px 80px' }}>
