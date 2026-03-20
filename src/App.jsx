@@ -6,15 +6,17 @@ import CapitalCalls from './components/CapitalCalls'
 import Reports from './components/Reports'
 import Upload from './components/Upload'
 import AdvisorHome from './components/AdvisorHome'
+import Liquidity from './components/Liquidity'
 import { fetchClients } from './lib/db'
 import { clients as mockClients } from './data/mockData'
 
 const PAGE_TITLES = {
-  home:    'Advisor Overview',
-  dash:    'Portfolio Overview',
-  calls:   'Capital Calls',
-  reports: 'Report Builder',
-  upload:  'Document Upload',
+  home:      'Advisor Overview',
+  dash:      'Portfolio Overview',
+  calls:     'Capital Calls',
+  liquidity: 'Liquidity Management',
+  reports:   'Report Builder',
+  upload:    'Document Upload',
 }
 
 export default function App() {
@@ -111,7 +113,8 @@ export default function App() {
         <div style={{ flex: 1, overflowY: 'auto' }}>
           {view === 'home'    && <AdvisorHome onSelectClient={selectClient} clients={clients} />}
           {view === 'dash'    && <Dashboard onGoToCalls={() => setView('calls')} activeClient={activeClient} />}
-          {view === 'calls'   && <CapitalCalls activeClient={activeClient} />}
+          {view === 'calls'     && <CapitalCalls activeClient={activeClient} />}
+          {view === 'liquidity' && <Liquidity activeClient={activeClient} />}
           {view === 'reports' && <Reports />}
           {view === 'upload'  && <Upload clientId={activeClient?.id} clientName={activeClient?.name} />}
         </div>

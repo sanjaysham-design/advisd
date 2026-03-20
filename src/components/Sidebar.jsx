@@ -12,9 +12,10 @@ const CLIENT_NAV = [
   {
     section: 'Alternatives',
     items: [
-      { label: 'Capital Calls', view: 'calls',   icon: 'calendar', badge: 3 },
-      { label: 'Fund Metrics',  view: 'dash',    icon: 'star' },
-      { label: 'Cash Flows',    view: 'dash',    icon: 'flow' },
+      { label: 'Capital Calls',       view: 'calls',     icon: 'calendar', badge: 3 },
+      { label: 'Liquidity Management', view: 'liquidity', icon: 'drop' },
+      { label: 'Fund Metrics',         view: 'dash',      icon: 'star' },
+      { label: 'Cash Flows',           view: 'dash',      icon: 'flow' },
     ],
   },
   {
@@ -56,6 +57,7 @@ const icons = {
   schedule: <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="7" cy="7" r="5.5"/><path d="M7 4v3l2 1.5"/></svg>,
   back:     <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M9 2L4 7l5 5"/></svg>,
   chevron:  <svg viewBox="0 0 10 10" width={9} height={9} fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M2 4l3 3 3-3"/></svg>,
+  drop:     <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M7 1C7 1 2 6.5 2 9a5 5 0 0010 0C12 6.5 7 1 7 1z"/></svg>,
 }
 
 const clientInitials = name => name.split(' ').map(w => w[0]).join('').slice(0, 2)
