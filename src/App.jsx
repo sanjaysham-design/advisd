@@ -53,9 +53,9 @@ export default function App() {
         setView={setView}
         clients={clients}
         clientIdx={clientIdx}
-        setClientIdx={setClientIdx}
         isHome={isHome}
-        onGoHome={isHome ? () => {} : goHome}
+        onSelectClient={selectClient}
+        onGoHome={goHome}
       />
 
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
@@ -109,7 +109,7 @@ export default function App() {
         {view !== 'upload' && view !== 'home' && <NLQBar />}
 
         <div style={{ flex: 1, overflowY: 'auto' }}>
-          {view === 'home'    && <AdvisorHome onSelectClient={selectClient} />}
+          {view === 'home'    && <AdvisorHome onSelectClient={selectClient} clients={clients} />}
           {view === 'dash'    && <Dashboard onGoToCalls={() => setView('calls')} activeClient={activeClient} />}
           {view === 'calls'   && <CapitalCalls activeClient={activeClient} />}
           {view === 'reports' && <Reports />}
