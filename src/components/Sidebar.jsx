@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState, useRef, useEffect } from 'react'
 
 const CLIENT_NAV = [
   {
@@ -12,9 +12,10 @@ const CLIENT_NAV = [
   {
     section: 'Alternatives',
     items: [
-      { label: 'Capital Calls', view: 'calls',   icon: 'calendar', badge: 3 },
-      { label: 'Fund Metrics',  view: 'dash',    icon: 'star' },
-      { label: 'Cash Flows',    view: 'dash',    icon: 'flow' },
+      { label: 'Capital Calls',       view: 'calls',     icon: 'calendar', badge: 3 },
+      { label: 'Liquidity Management', view: 'liquidity', icon: 'drop' },
+      { label: 'Fund Metrics',         view: 'dash',      icon: 'star' },
+      { label: 'Cash Flows',           view: 'dash',      icon: 'flow' },
     ],
   },
   {
@@ -55,12 +56,14 @@ const icons = {
   doc:      <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M3 1h6l4 3v9H3V1z"/><path d="M9 1v3h4"/><path d="M5 7h5M5 10h3"/></svg>,
   schedule: <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="7" cy="7" r="5.5"/><path d="M7 4v3l2 1.5"/></svg>,
   back:     <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M9 2L4 7l5 5"/></svg>,
+  chevron:  <svg viewBox="0 0 10 10" width={9} height={9} fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M2 4l3 3 3-3"/></svg>,
+  drop:     <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M7 1C7 1 2 6.5 2 9a5 5 0 0010 0C12 6.5 7 1 7 1z"/></svg>,
 }
 
 const clientInitials = name => name.split(' ').map(w => w[0]).join('').slice(0, 2)
 const clientColor = idx => `hsl(${idx * 60 + 210}, 70%, 45%)`
 
-export default function Sidebar({ view, setView, clients, clientIdx, setClientIdx, onGoHome, isHome }) {
+export default function Sidebar({ view, setView, clients, clientIdx, isHome, onSelectClient, onGoHome }) {
   return (
     <aside style={{
       width: 220, minWidth: 220,
@@ -88,9 +91,8 @@ export default function Sidebar({ view, setView, clients, clientIdx, setClientId
       </div>
 
       {isHome ? (
-        /* ── HOME VIEW: show client list ── */
+        /* ── HOME VIEW: Advisor Home active + client list ── */
         <nav style={{ padding: '10px 6px', flex: 1, overflowY: 'auto' }}>
-          {/* Advisor Home item */}
           <NavItem
             item={{ label: 'Advisor Home', icon: 'home', view: 'home' }}
             active={true}
@@ -107,53 +109,19 @@ export default function Sidebar({ view, setView, clients, clientIdx, setClientId
               name={c.name}
               initials={clientInitials(c.name)}
               color={clientColor(i)}
-              onClick={() => { setClientIdx(i); onGoHome(false) }}
+              onClick={() => onSelectClient(i)}
             />
           ))}
         </nav>
       ) : (
-        /* ── CLIENT VIEW: back button + full nav ── */
+        /* ── CLIENT VIEW: client switcher dropdown + full nav ── */
         <nav style={{ padding: '10px 6px', flex: 1, overflowY: 'auto' }}>
-          {/* Back to all clients */}
-          <div
-            onClick={onGoHome}
-            style={{
-              display: 'flex', alignItems: 'center', gap: 6,
-              padding: '7px 8px', borderRadius: 7, cursor: 'pointer',
-              fontSize: 11, color: 'var(--tx3)',
-              marginBottom: 8,
-            }}
-            onMouseEnter={e => e.currentTarget.style.background = 'var(--surf)'}
-            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-          >
-            <span style={{ width: 13, height: 13, flexShrink: 0 }}>{icons.back}</span>
-            All Clients
-          </div>
-
-          {/* Active client badge */}
-          {clients[clientIdx] && (
-            <div style={{
-              display: 'flex', alignItems: 'center', gap: 8,
-              padding: '8px 10px', marginBottom: 8,
-              background: 'var(--surf)', border: '1px solid var(--bdr)',
-              borderRadius: 9,
-            }}>
-              <div style={{
-                width: 26, height: 26, borderRadius: 7, flexShrink: 0,
-                background: clientColor(clientIdx),
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: 9, fontWeight: 700, color: '#fff',
-              }}>
-                {clientInitials(clients[clientIdx].name)}
-              </div>
-              <div style={{ minWidth: 0 }}>
-                <div style={{ fontSize: 11, fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                  {clients[clientIdx].name}
-                </div>
-                <div style={{ fontSize: 9, color: 'var(--tx3)' }}>Active client</div>
-              </div>
-            </div>
-          )}
+          <ClientSwitcher
+            clients={clients}
+            clientIdx={clientIdx}
+            onSelectClient={onSelectClient}
+            onGoHome={onGoHome}
+          />
 
           {/* Full nav sections */}
           {CLIENT_NAV.map(({ section, items }) => (
@@ -163,7 +131,10 @@ export default function Sidebar({ view, setView, clients, clientIdx, setClientId
                 <NavItem
                   key={item.label}
                   item={item}
-                  active={view === item.view && item.view !== 'dash' || (view === 'dash' && item.view === 'dash' && item.label === 'Dashboard')}
+                  active={
+                    (view === item.view && item.view !== 'dash') ||
+                    (view === 'dash' && item.view === 'dash' && item.label === 'Dashboard')
+                  }
                   onClick={() => setView(item.view)}
                 />
               ))}
@@ -186,6 +157,130 @@ export default function Sidebar({ view, setView, clients, clientIdx, setClientId
         </div>
       </div>
     </aside>
+  )
+}
+
+// ─── Client switcher dropdown (replaces static badge) ───────────────────────
+function ClientSwitcher({ clients, clientIdx, onSelectClient, onGoHome }) {
+  const [open, setOpen] = useState(false)
+  const ref = useRef(null)
+  const active = clients[clientIdx]
+
+  // Close on outside click
+  useEffect(() => {
+    if (!open) return
+    function handler(e) { if (ref.current && !ref.current.contains(e.target)) setOpen(false) }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [open])
+
+  return (
+    <div ref={ref} style={{ position: 'relative', marginBottom: 10 }}>
+      {/* Trigger */}
+      <div
+        onClick={() => setOpen(o => !o)}
+        style={{
+          display: 'flex', alignItems: 'center', gap: 8,
+          padding: '8px 10px',
+          background: 'var(--surf)', border: '1px solid var(--bdr2)',
+          borderRadius: 9, cursor: 'pointer',
+          transition: 'border-color 0.15s',
+          borderColor: open ? 'var(--blue)' : undefined,
+        }}
+      >
+        {active && (
+          <div style={{
+            width: 26, height: 26, borderRadius: 7, flexShrink: 0,
+            background: clientColor(clientIdx),
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontSize: 9, fontWeight: 700, color: '#fff',
+          }}>
+            {clientInitials(active.name)}
+          </div>
+        )}
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontSize: 11, fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {active?.name ?? '—'}
+          </div>
+          <div style={{ fontSize: 9, color: 'var(--tx3)' }}>Switch client ↕</div>
+        </div>
+        <span style={{
+          color: 'var(--tx3)', flexShrink: 0,
+          transform: open ? 'rotate(180deg)' : 'none',
+          transition: 'transform 0.15s',
+          display: 'flex',
+        }}>
+          {icons.chevron}
+        </span>
+      </div>
+
+      {/* Dropdown */}
+      {open && (
+        <div style={{
+          position: 'absolute', top: '100%', left: 0, right: 0, marginTop: 4,
+          background: 'var(--bg3)', border: '1px solid var(--bdr2)',
+          borderRadius: 10, overflow: 'hidden',
+          boxShadow: '0 8px 24px rgba(0,0,0,0.35)',
+          zIndex: 50,
+        }}>
+          {/* Advisor Home option */}
+          <DropdownItem
+            label="Advisor Home"
+            sub="All clients overview"
+            icon={<span style={{ width: 13, height: 13, display: 'flex' }}>{icons.home}</span>}
+            iconBg="linear-gradient(135deg, var(--blue), var(--purple))"
+            onClick={() => { setOpen(false); onGoHome() }}
+          />
+          <div style={{ height: 1, background: 'var(--bdr)', margin: '0 10px' }} />
+          {clients.map((c, i) => (
+            <DropdownItem
+              key={c.id || c.name}
+              label={c.name}
+              sub={i === clientIdx ? 'Active' : null}
+              active={i === clientIdx}
+              iconBg={clientColor(i)}
+              iconText={clientInitials(c.name)}
+              onClick={() => { setOpen(false); onSelectClient(i) }}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+function DropdownItem({ label, sub, active, iconBg, iconText, icon, onClick }) {
+  const [hov, setHov] = useState(false)
+  return (
+    <div
+      onClick={onClick}
+      onMouseEnter={() => setHov(true)}
+      onMouseLeave={() => setHov(false)}
+      style={{
+        display: 'flex', alignItems: 'center', gap: 8,
+        padding: '8px 10px', cursor: 'pointer',
+        background: active ? 'rgba(59,130,246,0.12)' : hov ? 'var(--surf)' : 'transparent',
+        transition: 'background 0.1s',
+      }}
+    >
+      <div style={{
+        width: 24, height: 24, borderRadius: 6, flexShrink: 0,
+        background: iconBg,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        fontSize: 8, fontWeight: 700, color: '#fff',
+      }}>
+        {icon || iconText}
+      </div>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ fontSize: 11, fontWeight: active ? 600 : 400, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: active ? 'var(--blue2)' : 'var(--tx)' }}>
+          {label}
+        </div>
+        {sub && <div style={{ fontSize: 9, color: active ? 'var(--blue2)' : 'var(--tx3)' }}>{sub}</div>}
+      </div>
+      {active && (
+        <svg viewBox="0 0 10 10" width={10} height={10} fill="none" stroke="var(--blue2)" strokeWidth="2"><path d="M2 5l2.5 2.5L8 3"/></svg>
+      )}
+    </div>
   )
 }
 

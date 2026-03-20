@@ -125,7 +125,13 @@ function fmtM(n) {
 const urgencyColor = { urgent: '#ef4444', upcoming: '#f59e0b', future: '#3b82f6' }
 const urgencyLabel = { urgent: 'Urgent', upcoming: 'Upcoming', future: 'Scheduled' }
 
-export default function AdvisorHome({ onSelectClient }) {
+export default function AdvisorHome({ onSelectClient, clients = [] }) {
+  // Map CLIENT_DATA index → real clients array index by name
+  function selectByName(name) {
+    const idx = clients.findIndex(c => c.name === name)
+    onSelectClient(idx >= 0 ? idx : 0)
+  }
+
   const ytdBarData = CLIENT_DATA.map(c => ({ name: c.name.split(' ')[0], ytd: c.ytd }))
 
   return (
@@ -333,7 +339,7 @@ export default function AdvisorHome({ onSelectClient }) {
           </thead>
           <tbody>
             {CLIENT_DATA.map((c, i) => (
-              <ClientRow key={c.name} client={c} idx={i} onClick={() => onSelectClient(i)} />
+              <ClientRow key={c.name} client={c} idx={i} onClick={() => selectByName(c.name)} />
             ))}
           </tbody>
         </table>
