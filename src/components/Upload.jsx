@@ -142,6 +142,26 @@ export default function Upload({ clientId, clientName }) {
     }
   }
 
+  async function handleReprocess(doc) {
+    if (!clientId) return
+    setDocs(prev => prev.map(d => d.id === doc.id ? { ...d, _reprocessing: true } : d))
+    try {
+      const resp = await fetch('/api/ingest', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ documentId: doc.id, clientId }),
+      })
+      if (!resp.ok) {
+        const err = await resp.json()
+        throw new Error(err.error || 'Re-process failed')
+      }
+      await loadDocs()
+    } catch (e) {
+      alert('Re-process failed: ' + e.message)
+      setDocs(prev => prev.map(d => d.id === doc.id ? { ...d, _reprocessing: false } : d))
+    }
+  }
+
   async function handleView(doc) {
     try {
       const url = await getDocumentUrl(doc.file_path)
@@ -288,7 +308,7 @@ export default function Upload({ clientId, clientName }) {
             </thead>
             <tbody>
               {filtered.map(doc => (
-                <DocRow key={doc.id} doc={doc} onDelete={handleDelete} onView={handleView} onTypeChange={handleTypeChange} />
+                <DocRow key={doc.id} doc={doc} onDelete={handleDelete} onView={handleView} onTypeChange={handleTypeChange} onReprocess={handleReprocess} />
               ))}
             </tbody>
           </table>
@@ -313,7 +333,7 @@ export default function Upload({ clientId, clientName }) {
   )
 }
 
-function DocRow({ doc, onDelete, onView, onTypeChange }) {
+function DocRow({ doc, onDelete, onView, onTypeChange, onReprocess }) {
   const [hov, setHov] = useState(false)
   const [editing, setEditing] = useState(false)
   const typeStyle = TYPE_COLORS[doc.doc_type] || TYPE_COLORS.other
@@ -378,6 +398,9 @@ function DocRow({ doc, onDelete, onView, onTypeChange }) {
       <td style={{ padding: '11px 16px', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
         <div style={{ display: 'flex', gap: 6 }}>
           <ActionBtn onClick={() => onView(doc)}>View</ActionBtn>
+          <ActionBtn onClick={() => onReprocess(doc)} loading={doc._reprocessing}>
+            {doc._reprocessing ? '⟳ Re-processing…' : 'Re-process'}
+          </ActionBtn>
           <ActionBtn onClick={() => onDelete(doc)} danger>Delete</ActionBtn>
         </div>
       </td>
@@ -415,18 +438,20 @@ function FilterPill({ label, active, onClick }) {
   )
 }
 
-function ActionBtn({ children, onClick, danger }) {
+function ActionBtn({ children, onClick, danger, loading }) {
   const [hov, setHov] = useState(false)
   return (
     <button
-      onClick={onClick}
+      onClick={loading ? undefined : onClick}
       onMouseEnter={() => setHov(true)}
       onMouseLeave={() => setHov(false)}
       style={{
-        background: hov && danger ? 'rgba(239,68,68,0.15)' : 'var(--surf)',
-        border: `1px solid ${hov && danger ? 'rgba(239,68,68,0.3)' : 'var(--bdr)'}`,
-        borderRadius: 5, color: danger && hov ? 'var(--red)' : 'var(--tx2)',
-        padding: '3px 10px', fontSize: 10, cursor: 'pointer',
+        background: hov && danger ? 'rgba(239,68,68,0.15)' : loading ? 'rgba(59,130,246,0.1)' : 'var(--surf)',
+        border: `1px solid ${hov && danger ? 'rgba(239,68,68,0.3)' : loading ? 'rgba(59,130,246,0.25)' : 'var(--bdr)'}`,
+        borderRadius: 5,
+        color: danger && hov ? 'var(--red)' : loading ? 'var(--blue2)' : 'var(--tx2)',
+        padding: '3px 10px', fontSize: 10,
+        cursor: loading ? 'default' : 'pointer',
         transition: 'all 0.15s',
       }}
     >{children}</button>
