@@ -15,6 +15,7 @@ import DocCalendar from './components/DocCalendar'
 import Performance from './components/Performance'
 import { fetchClients } from './lib/db'
 import { clients as mockClients } from './data/mockData'
+import { getTokenByClient } from './client/tokens'
 
 const PAGE_TITLES = {
   home:      'Advisor Overview',
@@ -109,6 +110,16 @@ export default function App() {
             </div>
           </div>
           <div style={{ marginLeft: 'auto', display: 'flex', gap: 8 }}>
+            {!isHome && (() => {
+              const token = getTokenByClient(activeClient?.name)
+              if (!token) return null
+              return (
+                <Btn ghost onClick={() => window.open(`${window.location.origin}${window.location.pathname}?token=${token}`, '_blank')}>
+                  <svg viewBox="0 0 14 14" width={11} height={11} fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="1" y="3" width="9" height="7" rx="1.2"/><path d="M10 5l3-2v8l-3-2"/></svg>
+                  Client View
+                </Btn>
+              )
+            })()}
             <Btn ghost>
               <svg viewBox="0 0 12 12" width={11} height={11} fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M2 4h8M2 6h5M2 8h4"/></svg>
               Export PDF

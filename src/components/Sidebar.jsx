@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react'
+import { getTokenByClient } from '../client/tokens'
 
 const CLIENT_NAV = [
   {
@@ -124,6 +125,9 @@ export default function Sidebar({ view, setView, clients, clientIdx, isHome, onS
             onSelectClient={onSelectClient}
             onGoHome={onGoHome}
           />
+
+          {/* Preview client portal button */}
+          <PreviewPortalBtn clients={clients} clientIdx={clientIdx} />
 
           {/* Full nav sections */}
           {CLIENT_NAV.map(({ section, items }) => (
@@ -312,6 +316,47 @@ function NavItem({ item, active, onClick }) {
           fontSize: 9, fontWeight: 700, padding: '1px 5px', borderRadius: 8,
         }}>{item.badge}</span>
       )}
+    </div>
+  )
+}
+
+// ─── Preview Client Portal button ───────────────────────────────────────────
+function PreviewPortalBtn({ clients, clientIdx }) {
+  const [hov, setHov] = useState(false)
+  const client = clients[clientIdx]
+  if (!client) return null
+  const token = getTokenByClient(client.name)
+  if (!token) return null
+
+  function openPortal() {
+    const url = `${window.location.origin}${window.location.pathname}?token=${token}`
+    window.open(url, '_blank')
+  }
+
+  return (
+    <div
+      onClick={openPortal}
+      onMouseEnter={() => setHov(true)}
+      onMouseLeave={() => setHov(false)}
+      style={{
+        display: 'flex', alignItems: 'center', gap: 7,
+        padding: '7px 8px', borderRadius: 7, cursor: 'pointer',
+        fontSize: 11, fontWeight: 500,
+        color: hov ? '#818cf8' : 'var(--tx3)',
+        background: hov ? 'rgba(129,140,248,0.1)' : 'transparent',
+        border: `1px solid ${hov ? 'rgba(129,140,248,0.25)' : 'transparent'}`,
+        transition: 'all 0.15s',
+        marginBottom: 10,
+      }}
+    >
+      <svg viewBox="0 0 14 14" width={13} height={13} fill="none" stroke="currentColor" strokeWidth="1.5">
+        <rect x="1" y="3" width="9" height="7" rx="1.2"/>
+        <path d="M10 5l3-2v8l-3-2"/>
+      </svg>
+      Preview Client View
+      <svg viewBox="0 0 10 10" width={8} height={8} fill="none" stroke="currentColor" strokeWidth="1.5" style={{ marginLeft: 'auto', opacity: 0.5 }}>
+        <path d="M2 2h6v6M8 2L2 8"/>
+      </svg>
     </div>
   )
 }
