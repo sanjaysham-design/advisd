@@ -8,6 +8,11 @@ import { C } from './ClientPortal'
 const fmt$M  = v => `$${(v / 1_000_000).toFixed(1)}M`
 const fmt$K  = v => v >= 0 ? `+$${(v / 1_000).toFixed(0)}K` : `-$${(Math.abs(v) / 1_000).toFixed(0)}K`
 const fmtPct = v => `${v > 0 ? '+' : ''}${v.toFixed(1)}%`
+const fmt$   = v => v >= 1_000_000
+  ? `$${(v / 1_000_000).toFixed(2)}M`
+  : `$${(v / 1_000).toFixed(0)}K`
+
+const DEFAULT_SHOW = 10
 
 const PERIODS = [
   { id: '3m',   label: '3M',            months: 3  },
@@ -19,7 +24,9 @@ const PERIODS = [
 ]
 
 export default function ClientOverview({ data, clientName }) {
-  const [period, setPeriod] = useState('1y')
+  const [period,    setPeriod]    = useState('1y')
+  const [showAll,   setShowAll]   = useState(false)
+  const [expanded,  setExpanded]  = useState(null)   // fund name of expanded row
 
   const months = PERIODS.find(p => p.id === period)?.months ?? 12
   const sliced = data.navHistory.slice(-months)
@@ -192,7 +199,7 @@ export default function ClientOverview({ data, clientName }) {
       </div>
 
       {/* ── Stats row ─────────────────────────────────────────────────── */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 14 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 14, marginBottom: 32 }}>
         {[
           { label: 'Net IRR',         value: `${data.irr}%`,         sub: 'Since inception' },
           { label: 'TWRR (3-Year)',   value: `${data.twrr}%`,        sub: 'Time-weighted' },
@@ -206,6 +213,200 @@ export default function ClientOverview({ data, clientName }) {
           </div>
         ))}
       </div>
+
+      {/* ── Holdings ──────────────────────────────────────────────────── */}
+      {data.holdings && data.holdings.length > 0 && (
+        <HoldingsModule
+          holdings={data.holdings}
+          showAll={showAll}
+          setShowAll={setShowAll}
+          expanded={expanded}
+          setExpanded={setExpanded}
+        />
+      )}
+    </div>
+  )
+}
+
+// ── Holdings module ────────────────────────────────────────────────────────────
+function HoldingsModule({ holdings, showAll, setShowAll, expanded, setExpanded }) {
+  const sorted  = [...holdings].sort((a, b) => b.value - a.value)
+  const visible = showAll ? sorted : sorted.slice(0, DEFAULT_SHOW)
+  const hidden  = sorted.length - DEFAULT_SHOW
+
+  return (
+    <div style={{ background: C.card, border: `1px solid ${C.bdr}`, borderRadius: 20, overflow: 'hidden' }}>
+
+      {/* Header */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '22px 24px 18px' }}>
+        <div>
+          <div style={{ fontSize: 16, fontWeight: 600 }}>Your Holdings</div>
+          <div style={{ fontSize: 12, color: C.tx2, marginTop: 3 }}>
+            {holdings.length} positions · Sorted by value
+          </div>
+        </div>
+        <div style={{
+          fontSize: 11, color: C.tx3,
+          background: C.surf, borderRadius: 8, padding: '5px 10px',
+        }}>
+          As of March 2026
+        </div>
+      </div>
+
+      {/* Column headers */}
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: '2fr 120px 110px 90px 90px 80px',
+        padding: '8px 24px',
+        borderTop: `1px solid ${C.bdr}`,
+        borderBottom: `1px solid ${C.bdr}`,
+        background: C.surf,
+      }}>
+        {['Fund / Investment', 'Type', 'Value', '% of Portfolio', 'Return', 'Vintage'].map(h => (
+          <div key={h} style={{ fontSize: 10, color: C.tx3, textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 500 }}>
+            {h}
+          </div>
+        ))}
+      </div>
+
+      {/* Rows */}
+      {visible.map((h, i) => {
+        const isOpen = expanded === h.name
+        return (
+          <div key={h.name}>
+            <div
+              onClick={() => setExpanded(isOpen ? null : h.name)}
+              style={{
+                display: 'grid',
+                gridTemplateColumns: '2fr 120px 110px 90px 90px 80px',
+                padding: '14px 24px',
+                borderBottom: `1px solid ${C.bdr}`,
+                cursor: 'pointer',
+                transition: 'background 0.12s',
+                background: isOpen ? C.surf : i % 2 === 1 ? 'rgba(255,255,255,0.015)' : 'transparent',
+              }}
+              onMouseEnter={e => { if (!isOpen) e.currentTarget.style.background = 'rgba(255,255,255,0.03)' }}
+              onMouseLeave={e => { e.currentTarget.style.background = isOpen ? C.surf : i % 2 === 1 ? 'rgba(255,255,255,0.015)' : 'transparent' }}
+            >
+              {/* Name + status */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <div style={{
+                  width: 32, height: 32, borderRadius: 8, flexShrink: 0,
+                  background: `${h.color}22`,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                }}>
+                  <span style={{ fontSize: 13 }}>
+                    {h.type === 'Real Estate' ? '🏢' :
+                     h.type === 'Private Equity' ? '🏦' :
+                     h.type === 'Hedge Fund' ? '📊' :
+                     h.type === 'Credit' ? '📋' :
+                     h.type === 'Equity' ? '📈' : '💵'}
+                  </span>
+                </div>
+                <div>
+                  <div style={{ fontSize: 13, fontWeight: 500, color: C.tx }}>{h.name}</div>
+                  {h.status === 'mature' && (
+                    <div style={{ fontSize: 10, color: C.amb, marginTop: 2 }}>Fully deployed · Harvesting</div>
+                  )}
+                </div>
+                <svg
+                  viewBox="0 0 10 10" width={12} height={12}
+                  fill="none" stroke={C.tx3} strokeWidth="1.5"
+                  style={{ marginLeft: 4, transition: 'transform 0.15s', transform: isOpen ? 'rotate(180deg)' : 'none', flexShrink: 0 }}
+                >
+                  <polyline points="2,3 5,7 8,3"/>
+                </svg>
+              </div>
+
+              {/* Type badge */}
+              <div style={{ display: 'flex', alignItems: 'center' }}>
+                <span style={{
+                  fontSize: 10, fontWeight: 500, padding: '3px 8px', borderRadius: 6,
+                  background: `${h.color}1a`, color: h.color,
+                }}>
+                  {h.type}
+                </span>
+              </div>
+
+              {/* Value */}
+              <div style={{ display: 'flex', alignItems: 'center', fontSize: 13, fontWeight: 600 }}>
+                {fmt$(h.value)}
+              </div>
+
+              {/* % of portfolio bar */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <div style={{ flex: 1, height: 4, borderRadius: 2, background: 'rgba(255,255,255,0.06)', overflow: 'hidden', maxWidth: 48 }}>
+                  <div style={{ height: '100%', width: `${Math.min(100, h.pct * 3)}%`, background: h.color, borderRadius: 2, opacity: 0.7 }} />
+                </div>
+                <span style={{ fontSize: 11, color: C.tx2, minWidth: 28 }}>{h.pct}%</span>
+              </div>
+
+              {/* Return */}
+              <div style={{ display: 'flex', alignItems: 'center', flexDirection: 'column', alignItems: 'flex-start', gap: 2 }}>
+                <span style={{ fontSize: 13, fontWeight: 600, color: C.grn }}>{h.ret}%</span>
+                <span style={{ fontSize: 9, color: C.tx3 }}>{h.retLabel}</span>
+              </div>
+
+              {/* Vintage + TVPI */}
+              <div style={{ display: 'flex', alignItems: 'center', flexDirection: 'column', alignItems: 'flex-start', gap: 2 }}>
+                <span style={{ fontSize: 12, color: C.tx2 }}>{h.vintage ?? '—'}</span>
+                {h.tvpi && <span style={{ fontSize: 9, color: C.tx3 }}>{h.tvpi}x TVPI</span>}
+              </div>
+            </div>
+
+            {/* Expanded detail panel */}
+            {isOpen && (
+              <div style={{
+                padding: '16px 24px 20px 24px',
+                borderBottom: `1px solid ${C.bdr}`,
+                background: C.surf,
+                display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16,
+              }}>
+                <DetailStat label="Current Value"    value={fmt$(h.value)} />
+                <DetailStat label="Portfolio Weight"  value={`${h.pct}%`} />
+                <DetailStat label={h.retLabel}        value={`${h.ret}%`} />
+                {h.tvpi
+                  ? <DetailStat label="TVPI Multiple"  value={`${h.tvpi}x`} sub="Total Value to Paid-In" />
+                  : <DetailStat label="Asset Type"     value={h.type} />
+                }
+                {h.vintage && <DetailStat label="Vintage Year"  value={h.vintage} />}
+                <DetailStat label="Status" value={h.status === 'mature' ? 'Harvesting' : 'Active / Deploying'} />
+              </div>
+            )}
+          </div>
+        )
+      })}
+
+      {/* Show more / less */}
+      {holdings.length > DEFAULT_SHOW && (
+        <div style={{ padding: '16px 24px', textAlign: 'center' }}>
+          <button
+            onClick={() => setShowAll(v => !v)}
+            style={{
+              background: C.surf, border: `1px solid ${C.bdr2}`,
+              color: C.acc, borderRadius: 10, padding: '9px 24px',
+              fontFamily: 'inherit', fontSize: 12, fontWeight: 500,
+              cursor: 'pointer', transition: 'all 0.15s',
+            }}
+            onMouseEnter={e => e.currentTarget.style.background = 'rgba(129,140,248,0.10)'}
+            onMouseLeave={e => e.currentTarget.style.background = C.surf}
+          >
+            {showAll
+              ? `Show less`
+              : `Show ${hidden} more position${hidden !== 1 ? 's' : ''}`}
+          </button>
+        </div>
+      )}
+    </div>
+  )
+}
+
+function DetailStat({ label, value, sub }) {
+  return (
+    <div>
+      <div style={{ fontSize: 10, color: C.tx3, textTransform: 'uppercase', letterSpacing: '0.4px', marginBottom: 5 }}>{label}</div>
+      <div style={{ fontSize: 14, fontWeight: 600, color: C.tx }}>{value}</div>
+      {sub && <div style={{ fontSize: 10, color: C.tx3, marginTop: 2 }}>{sub}</div>}
     </div>
   )
 }
