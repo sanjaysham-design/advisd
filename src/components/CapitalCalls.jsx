@@ -1,6 +1,8 @@
 import React, { useState } from 'react'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts'
 import { useClientData } from '../lib/useClientData'
+import { PORTAL_DATA } from '../client/clientData'
+import LiquidityWidget from './LiquidityWidget'
 
 function fmt(n) {
   if (!n && n !== 0) return '—'
@@ -14,6 +16,7 @@ const TABS = ['All Calls', 'Past Calls', 'Commitments', 'Distributions']
 export default function CapitalCalls({ activeClient }) {
   const [tab, setTab] = useState('All Calls')
   const { capitalCalls, cashFlowForecast, loading, isLive } = useClientData(activeClient?.id)
+  const holdings = PORTAL_DATA[activeClient?.name]?.holdings || []
 
   const totalDue      = capitalCalls.reduce((s, c) => s + (c.amount || 0), 0)
   const totalUnfunded = capitalCalls.reduce((s, c) => s + (c.unfundedRemaining || 0), 0)
@@ -122,6 +125,9 @@ export default function CapitalCalls({ activeClient }) {
           </BarChart>
         </ResponsiveContainer>
       </div>
+
+      {/* Liquidity */}
+      <LiquidityWidget holdings={holdings} />
 
       {/* Commitments table */}
       <div style={{ fontSize: 13, fontWeight: 500, marginBottom: 12 }}>All Fund Commitments</div>

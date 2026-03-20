@@ -4,6 +4,7 @@ import {
   Tooltip, ResponsiveContainer, ReferenceLine, Cell,
 } from 'recharts'
 import { C } from './ClientPortal'
+import LiquidityWidget from '../components/LiquidityWidget'
 
 const fmt$M = v => `$${(Math.abs(v) / 1_000_000).toFixed(2)}M`
 const fmt$K = v => `$${(Math.abs(v) / 1_000).toFixed(0)}K`
@@ -235,6 +236,13 @@ export default function ClientCashFlow({ data, clientName }) {
           ))}
         </div>
       </div>
+
+      {/* ── Portfolio Liquidity ───────────────────────────────────────────── */}
+      {data.holdings?.length > 0 && (
+        <div style={{ marginTop: 24 }}>
+          <LiquidityWidget holdings={data.holdings} />
+        </div>
+      )}
     </div>
   )
 }
