@@ -156,8 +156,8 @@ export default function ClientOverview({ data, clientName }) {
                   dataKey="pct"
                   nameKey="name"
                   cx="50%" cy="50%"
-                  innerRadius={48}
-                  outerRadius={72}
+                  innerRadius={42}
+                  outerRadius={62}
                   paddingAngle={2}
                   startAngle={90}
                   endAngle={-270}
