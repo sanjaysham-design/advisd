@@ -1,9 +1,9 @@
 export const clients = [
-  'Meridian Family Trust',
-  'Harrington Capital LLC',
+  'Meridian Capital Partners',
+  'Okonkwo Family Trust',
   'Chen Family Office',
-  'Voss Private Wealth',
-  'Alderton Partners',
+  'Park & Lee Family Office',
+  'Rosenberg Family Trust',
 ]
 
 export const kpis = [
