@@ -263,7 +263,10 @@ function HoldingsModule({ holdings, showAll, setShowAll, expanded, setExpanded }
         background: C.surf,
       }}>
         {['Fund / Investment', 'Type', 'Value', '% of Portfolio', 'Return', 'Vintage'].map(h => (
-          <div key={h} style={{ fontSize: 10, color: C.tx3, textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 500 }}>
+          <div key={h} style={{
+            fontSize: 10, color: C.tx3, textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 500,
+            paddingLeft: h === 'Return' ? 20 : 0,
+          }}>
             {h}
           </div>
         ))}
@@ -342,7 +345,7 @@ function HoldingsModule({ holdings, showAll, setShowAll, expanded, setExpanded }
               </div>
 
               {/* Return */}
-              <div style={{ display: 'flex', alignItems: 'center', flexDirection: 'column', alignItems: 'flex-start', gap: 2 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 2, paddingLeft: 20 }}>
                 <span style={{ fontSize: 13, fontWeight: 600, color: C.grn }}>{h.ret}%</span>
                 <span style={{ fontSize: 9, color: C.tx3 }}>{h.retLabel}</span>
               </div>
