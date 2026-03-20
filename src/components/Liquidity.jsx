@@ -6,7 +6,7 @@ import {
 
 // ─── Per-client liquidity profiles ──────────────────────────────────────────
 const PROFILES = {
-  'Meridian Family Trust': {
+  'Meridian Capital Partners': {
     aum: 47.3,
     liquid: {
       cash:         4200000,
@@ -24,7 +24,7 @@ const PROFILES = {
       { fund: 'KKR North America XII (Call #4)',   month: 10, amount: 1100000, urgency: 'future'   },
     ],
   },
-  'Harrington Capital LLC': {
+  'Okonkwo Family Trust': {
     aum: 38.2,
     liquid: {
       cash:         1200000,
@@ -54,7 +54,7 @@ const PROFILES = {
       { fund: 'Sequoia Capital Growth (Call #3)',  month: 9,  amount: 700000,  urgency: 'future'   },
     ],
   },
-  'Voss Private Wealth': {
+  'Park & Lee Family Office': {
     aum: 31.6,
     liquid: {
       cash:         3400000,
@@ -67,7 +67,7 @@ const PROFILES = {
       { fund: 'Blackstone Real Estate X',         month: 8,  amount: 600000,  urgency: 'future'   },
     ],
   },
-  'Alderton Partners': {
+  'Rosenberg Family Trust': {
     aum: 19.6,
     liquid: {
       cash:         1400000,
@@ -119,8 +119,8 @@ function coverageStatus(ratio) {
 
 export default function Liquidity({ activeClient }) {
   const [period, setPeriod] = useState('12mo')
-  const clientName = activeClient?.name || 'Meridian Family Trust'
-  const profile = PROFILES[clientName] || PROFILES['Meridian Family Trust']
+  const clientName = activeClient?.name || 'Meridian Capital Partners'
+  const profile = PROFILES[clientName] || PROFILES['Meridian Capital Partners']
 
   const { aum, liquid, scheduledCalls } = profile
   const totalLiquid = Object.values(liquid).reduce((s, v) => s + v, 0)

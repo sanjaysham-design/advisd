@@ -7,14 +7,14 @@ import {
 // ─── Per-client aggregate mock data ────────────────────────────────────────
 const CLIENT_DATA = [
   {
-    name: 'Meridian Family Trust',
+    name: 'Meridian Capital Partners',
     aum: 47.3, ytd: 11.4, alpha: 3.2,
     callsDue: 1850000, callCount: 3, unfunded: 8200000,
     liquidRatio: 0.82, drift: 1.2, driftFlag: false,
     alignScore: 91,
   },
   {
-    name: 'Harrington Capital LLC',
+    name: 'Okonkwo Family Trust',
     aum: 38.2, ytd: 9.8, alpha: 1.6,
     callsDue: 2400000, callCount: 1, unfunded: 6800000,
     liquidRatio: 0.71, drift: 6.8, driftFlag: true,
@@ -28,14 +28,14 @@ const CLIENT_DATA = [
     alignScore: 94,
   },
   {
-    name: 'Voss Private Wealth',
+    name: 'Park & Lee Family Office',
     aum: 31.6, ytd: 7.9, alpha: -0.3,
     callsDue: 0, callCount: 0, unfunded: 4200000,
     liquidRatio: 0.88, drift: 2.1, driftFlag: false,
     alignScore: 78,
   },
   {
-    name: 'Alderton Partners',
+    name: 'Rosenberg Family Trust',
     aum: 19.6, ytd: 10.3, alpha: 2.1,
     callsDue: 900000, callCount: 1, unfunded: 3100000,
     liquidRatio: 0.79, drift: 1.5, driftFlag: false,
@@ -145,7 +145,7 @@ export default function AdvisorHome({ onSelectClient, clients = [] }) {
       }}>
         <span style={{ fontSize: 14 }}>⚠️</span>
         <div style={{ flex: 1 }}>
-          <span style={{ fontSize: 12, fontWeight: 600, color: '#ef4444' }}>Drift Alert — Harrington Capital LLC</span>
+          <span style={{ fontSize: 12, fontWeight: 600, color: '#ef4444' }}>Drift Alert — Okonkwo Family Trust</span>
           <span style={{ fontSize: 12, color: 'var(--tx2)', marginLeft: 8 }}>
             Allocation drift of <strong>6.8%</strong> detected vs target. PE overweight by 4.1%, Fixed Income underweight by 3.9%. Review recommended.
           </span>

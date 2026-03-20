@@ -16,7 +16,7 @@ const CLASSES = [
 
 // ─── Per-client profiles ──────────────────────────────────────────────────────
 const PROFILES = {
-  'Meridian Family Trust': {
+  'Meridian Capital Partners': {
     aum: 47.3,
     lastRebalanced: 'Nov 12, 2025',
     nextReview: 'May 12, 2026',
@@ -41,7 +41,7 @@ const PROFILES = {
       { month: 'Mar', equity: 1.2, fi: -0.9, pe: 1.3, re: -0.2, hf: -0.6 },
     ],
   },
-  'Harrington Capital LLC': {
+  'Okonkwo Family Trust': {
     aum: 38.2,
     lastRebalanced: 'Aug 3, 2025',
     nextReview: 'Overdue',
@@ -89,7 +89,7 @@ const PROFILES = {
       { month: 'Mar', equity: 0.8, fi: -0.3, pe: 0.4, re: -0.1, hf: -0.2 },
     ],
   },
-  'Voss Private Wealth': {
+  'Park & Lee Family Office': {
     aum: 31.6,
     lastRebalanced: 'Sep 21, 2025',
     nextReview: 'Mar 21, 2026',
@@ -113,7 +113,7 @@ const PROFILES = {
       { month: 'Mar', equity: 2.1, fi: -2.1, pe: 0.3, re: 0.8, hf: -0.7 },
     ],
   },
-  'Alderton Partners': {
+  'Rosenberg Family Trust': {
     aum: 19.6,
     lastRebalanced: 'Dec 4, 2025',
     nextReview: 'Jun 4, 2026',
@@ -151,8 +151,8 @@ function fmtPct(n) { return (n >= 0 ? '+' : '') + n.toFixed(1) + '%' }
 function fmtM(n)   { return '$' + (n * 1_000_000 / 1_000_000).toFixed(1) + 'M' }
 
 export default function DriftMonitor({ activeClient }) {
-  const clientName = activeClient?.name || 'Meridian Family Trust'
-  const profile = PROFILES[clientName] || PROFILES['Meridian Family Trust']
+  const clientName = activeClient?.name || 'Meridian Capital Partners'
+  const profile = PROFILES[clientName] || PROFILES['Meridian Capital Partners']
   const { aum, lastRebalanced, nextReview, targets, actual, thresholds, holdings, driftHistory } = profile
 
   // Local editable thresholds

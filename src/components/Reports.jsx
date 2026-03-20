@@ -63,9 +63,9 @@ export default function Reports() {
               <tbody>
                 {[
                   { report: 'Quarterly Performance Report', client: 'All Clients', freq: 'Quarterly', next: 'Apr 1, 2026', recipients: 5, active: true },
-                  { report: 'Capital Call Summary', client: 'Meridian Family Trust', freq: 'On trigger', next: 'Jan 22, 2026', recipients: 2, active: true },
+                  { report: 'Capital Call Summary', client: 'Meridian Capital Partners', freq: 'On trigger', next: 'Jan 22, 2026', recipients: 2, active: true },
                   { report: 'Risk & Exposure Report', client: 'All Clients', freq: 'Monthly', next: 'Feb 1, 2026', recipients: 5, active: true },
-                  { report: 'Manager Attribution Report', client: 'Harrington Capital LLC', freq: 'Quarterly', next: 'Apr 1, 2026', recipients: 1, active: false },
+                  { report: 'Manager Attribution Report', client: 'Okonkwo Family Trust', freq: 'Quarterly', next: 'Apr 1, 2026', recipients: 1, active: false },
                 ].map((r, i) => (
                   <ScheduledRow key={i} row={r} />
                 ))}
@@ -89,11 +89,11 @@ export default function Reports() {
               </thead>
               <tbody>
                 {[
-                  { name: 'Q3 2025 Performance Report', client: 'Meridian Family Trust', date: 'Oct 3, 2025', pages: 12 },
-                  { name: 'Q3 2025 Performance Report', client: 'Harrington Capital LLC', date: 'Oct 3, 2025', pages: 12 },
-                  { name: 'Capital Call Summary — Sep 2025', client: 'Meridian Family Trust', date: 'Sep 15, 2025', pages: 4 },
+                  { name: 'Q3 2025 Performance Report', client: 'Meridian Capital Partners', date: 'Oct 3, 2025', pages: 12 },
+                  { name: 'Q3 2025 Performance Report', client: 'Okonkwo Family Trust', date: 'Oct 3, 2025', pages: 12 },
+                  { name: 'Capital Call Summary — Sep 2025', client: 'Meridian Capital Partners', date: 'Sep 15, 2025', pages: 4 },
                   { name: 'Q2 2025 Risk & Exposure', client: 'Chen Family Office', date: 'Jul 5, 2025', pages: 6 },
-                  { name: 'Q2 2025 Performance Report', client: 'Meridian Family Trust', date: 'Jul 1, 2025', pages: 12 },
+                  { name: 'Q2 2025 Performance Report', client: 'Meridian Capital Partners', date: 'Jul 1, 2025', pages: 12 },
                 ].map((r, i) => (
                   <ArchiveRow key={i} row={r} />
                 ))}
