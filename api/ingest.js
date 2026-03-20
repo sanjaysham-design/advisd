@@ -361,24 +361,45 @@ async function writeExtractedData(data, documentId, clientId, docType) {
       results.holding = inserted
     }
 
-    if (docType === 'statement' && data.holdings && data.holdings.length > 0) {
-      const rows = data.holdings.map(h => ({
-        client_id: clientId,
-        document_id: documentId,
-        fund_name: h.name,
-        manager: data.custodian,
-        asset_class: h.asset_class || 'Unknown',
-        market_value: h.market_value,
-        as_of_date: data.as_of_date,
-      }))
+    if (docType === 'statement') {
+      // Claude sometimes returns { equities: [...], fixed_income: [...] } instead of a flat array.
+      // Flatten whichever shape we receive before writing rows.
+      let holdingsArr = null
+      if (Array.isArray(data.holdings)) {
+        holdingsArr = data.holdings
+      } else if (data.holdings && typeof data.holdings === 'object') {
+        holdingsArr = Object.values(data.holdings).flat()
+      }
 
-      const { data: inserted, error } = await supabase
-        .from('holdings')
-        .upsert(rows)
-        .select()
+      if (holdingsArr?.length > 0) {
+        const custodian = data.custodian || data.account_info?.custodian || null
+        const asOfDate  = data.as_of_date || data.account_info?.statement_period_end || null
 
-      if (error) throw error
-      results.holdings = inserted
+        const rows = holdingsArr
+          .filter(h => h.name || h.security)
+          .map(h => ({
+            client_id:    clientId,
+            document_id:  documentId,
+            fund_name:    h.name || h.security,
+            manager:      custodian,
+            asset_class:  h.asset_class
+              || (h.ticker     ? 'Equity'       : null)
+              || (h.coupon != null ? 'Fixed Income' : null)
+              || 'Unknown',
+            market_value: h.market_value,
+            as_of_date:   asOfDate,
+          }))
+
+        if (rows.length > 0) {
+          const { data: inserted, error } = await supabase
+            .from('holdings')
+            .upsert(rows)
+            .select()
+
+          if (error) throw error
+          results.holdings = inserted
+        }
+      }
     }
 
   } catch (e) {
