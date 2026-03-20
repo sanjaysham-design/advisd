@@ -108,31 +108,29 @@ function buildContextString(ctx) {
     ctx.allocation.forEach(a => lines.push(`  ${a.name}: ${a.pct}%`))
   }
 
-  if (ctx.holdings?.length) {
+  // Prefer live Supabase holdings; only fall back to mock if no live records exist
+  if (ctx.liveHoldings?.length) {
+    lines.push(`\nHOLDINGS (live):`)
+    ctx.liveHoldings.slice(0, 10).forEach(h => {
+      lines.push(`  ${h.fund_name} | ${h.asset_class} | NAV: ${fmt(h.market_value)} | IRR: ${fmtPct(h.irr)} | TVPI: ${h.tvpi != null ? h.tvpi + 'x' : 'N/A'} | As of: ${h.as_of_date ?? 'N/A'}`)
+    })
+  } else if (ctx.holdings?.length) {
     lines.push(`\nHOLDINGS (top ${Math.min(ctx.holdings.length, 10)}):`)
     ctx.holdings.slice(0, 10).forEach(h => {
       lines.push(`  ${h.name} | ${h.type} | Value: ${fmt(h.value)} | Return: ${fmtPct(h.ret)} (${h.retLabel ?? ''}) | TVPI: ${h.tvpi != null ? h.tvpi + 'x' : 'N/A'} | Vintage: ${h.vintage ?? 'N/A'}`)
     })
   }
 
-  if (ctx.liveHoldings?.length) {
-    lines.push(`\nLIVE HOLDINGS (from database, most recent):`)
-    ctx.liveHoldings.slice(0, 10).forEach(h => {
-      lines.push(`  ${h.fund_name} | ${h.asset_class} | NAV: ${fmt(h.market_value)} | IRR: ${fmtPct(h.irr)} | TVPI: ${h.tvpi != null ? h.tvpi + 'x' : 'N/A'} | As of: ${h.as_of_date ?? 'N/A'}`)
+  // Prefer live Supabase data; only fall back to mock if no live records exist
+  if (ctx.liveCapitalCalls?.length) {
+    lines.push(`\nUPCOMING CAPITAL CALLS (live):`)
+    ctx.liveCapitalCalls.forEach(c => {
+      lines.push(`  ${c.fund_name}: ${fmtK(c.amount)} due ${c.due_date ?? 'N/A'} | Status: ${c.status} | Unfunded remaining: ${fmt(c.unfunded_remaining)}`)
     })
-  }
-
-  if (ctx.upcomingCalls?.length) {
+  } else if (ctx.upcomingCalls?.length) {
     lines.push(`\nUPCOMING CAPITAL CALLS:`)
     ctx.upcomingCalls.forEach(c => {
       lines.push(`  ${c.fund}: ${fmtK(c.amount)} due ${c.due}`)
-    })
-  }
-
-  if (ctx.liveCapitalCalls?.length) {
-    lines.push(`\nLIVE CAPITAL CALLS (from database):`)
-    ctx.liveCapitalCalls.forEach(c => {
-      lines.push(`  ${c.fund_name}: ${fmtK(c.amount)} due ${c.due_date ?? 'N/A'} | Status: ${c.status} | Unfunded remaining: ${fmt(c.unfunded_remaining)}`)
     })
   }
 
