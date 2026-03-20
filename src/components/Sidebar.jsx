@@ -21,10 +21,10 @@ const CLIENT_NAV = [
   {
     section: 'Analysis',
     items: [
-      { label: 'Drift Monitor',   view: 'drift', icon: 'target' },
-      { label: 'Risk & Exposure', view: 'dash',  icon: 'shield' },
-      { label: 'Benchmarks',      view: 'dash', icon: 'bar' },
-      { label: 'Scenarios',       view: 'dash', icon: 'branch' },
+      { label: 'Drift Monitor',        view: 'drift',   icon: 'target' },
+      { label: 'Vintage Benchmarking', view: 'vintage', icon: 'bar' },
+      { label: 'Risk & Exposure',      view: 'dash',    icon: 'shield' },
+      { label: 'Scenarios',            view: 'dash',    icon: 'branch' },
     ],
   },
   {

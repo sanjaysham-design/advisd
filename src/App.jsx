@@ -9,6 +9,7 @@ import AdvisorHome from './components/AdvisorHome'
 import Liquidity from './components/Liquidity'
 import DriftMonitor from './components/DriftMonitor'
 import FeeTracking from './components/FeeTracking'
+import VintageBenchmark from './components/VintageBenchmark'
 import { fetchClients } from './lib/db'
 import { clients as mockClients } from './data/mockData'
 
@@ -19,6 +20,7 @@ const PAGE_TITLES = {
   liquidity: 'Liquidity Management',
   drift:     'Drift & Allocation Monitor',
   fees:      'Fee Tracking',
+  vintage:   'Vintage Year Benchmarking',
   reports:   'Report Builder',
   upload:    'Document Upload',
 }
@@ -121,6 +123,7 @@ export default function App() {
           {view === 'liquidity' && <Liquidity activeClient={activeClient} />}
           {view === 'drift'     && <DriftMonitor activeClient={activeClient} />}
           {view === 'fees'      && <FeeTracking activeClient={activeClient} />}
+          {view === 'vintage'   && <VintageBenchmark activeClient={activeClient} />}
           {view === 'reports' && <Reports />}
           {view === 'upload'  && <Upload clientId={activeClient?.id} clientName={activeClient?.name} />}
         </div>
