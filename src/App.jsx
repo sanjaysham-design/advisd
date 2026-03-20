@@ -12,12 +12,14 @@ import FeeTracking from './components/FeeTracking'
 import VintageBenchmark from './components/VintageBenchmark'
 import MeetingPrep from './components/MeetingPrep'
 import DocCalendar from './components/DocCalendar'
+import Performance from './components/Performance'
 import { fetchClients } from './lib/db'
 import { clients as mockClients } from './data/mockData'
 
 const PAGE_TITLES = {
   home:      'Advisor Overview',
   dash:      'Portfolio Overview',
+  perf:      'Performance',
   calls:     'Capital Calls',
   liquidity: 'Liquidity Management',
   drift:     'Drift & Allocation Monitor',
@@ -123,6 +125,7 @@ export default function App() {
         <div style={{ flex: 1, overflowY: 'auto' }}>
           {view === 'home'    && <AdvisorHome onSelectClient={selectClient} clients={clients} />}
           {view === 'dash'    && <Dashboard onGoToCalls={() => setView('calls')} activeClient={activeClient} />}
+          {view === 'perf'      && <Performance activeClient={activeClient} />}
           {view === 'calls'     && <CapitalCalls activeClient={activeClient} />}
           {view === 'liquidity' && <Liquidity activeClient={activeClient} />}
           {view === 'drift'     && <DriftMonitor activeClient={activeClient} />}

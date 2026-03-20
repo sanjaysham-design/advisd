@@ -4,8 +4,8 @@ const CLIENT_NAV = [
   {
     section: 'Overview',
     items: [
-      { label: 'Dashboard',   view: 'dash',    icon: 'grid' },
-      { label: 'Performance', view: 'dash',    icon: 'trend' },
+      { label: 'Dashboard',   view: 'dash', icon: 'grid' },
+      { label: 'Performance', view: 'perf', icon: 'trend' },
     ],
   },
   {
