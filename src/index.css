@@ -45,3 +45,7 @@ input, select, button { font-family: inherit; }
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
+
+@media (max-width: 640px) {
+  ::-webkit-scrollbar { width: 2px; height: 2px; }
+}

@@ -66,7 +66,7 @@ const icons = {
 const clientInitials = name => name.split(' ').map(w => w[0]).join('').slice(0, 2)
 const clientColor = idx => `hsl(${idx * 60 + 210}, 70%, 45%)`
 
-export default function Sidebar({ view, setView, clients, clientIdx, isHome, onSelectClient, onGoHome }) {
+export default function Sidebar({ view, setView, clients, clientIdx, isHome, onSelectClient, onGoHome, isMobile, isOpen, onClose }) {
   return (
     <aside style={{
       width: 220, minWidth: 220,
@@ -74,6 +74,11 @@ export default function Sidebar({ view, setView, clients, clientIdx, isHome, onS
       borderRight: '1px solid var(--bdr)',
       display: 'flex', flexDirection: 'column',
       height: '100vh', overflow: 'hidden',
+      ...(isMobile ? {
+        position: 'fixed', left: 0, top: 0, zIndex: 1000,
+        transform: isOpen ? 'translateX(0)' : 'translateX(-100%)',
+        transition: 'transform 0.25s ease',
+      } : {}),
     }}>
       {/* Logo */}
       <div style={{ padding: '18px 16px 14px', borderBottom: '1px solid var(--bdr)', display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -112,7 +117,7 @@ export default function Sidebar({ view, setView, clients, clientIdx, isHome, onS
               name={c.name}
               initials={clientInitials(c.name)}
               color={clientColor(i)}
-              onClick={() => onSelectClient(i)}
+              onClick={() => { onSelectClient(i); if (isMobile) onClose() }}
             />
           ))}
         </nav>
@@ -124,6 +129,8 @@ export default function Sidebar({ view, setView, clients, clientIdx, isHome, onS
             clientIdx={clientIdx}
             onSelectClient={onSelectClient}
             onGoHome={onGoHome}
+            isMobile={isMobile}
+            onClose={onClose}
           />
 
           {/* Preview client portal button */}
@@ -141,7 +148,7 @@ export default function Sidebar({ view, setView, clients, clientIdx, isHome, onS
                     (view === item.view && item.view !== 'dash') ||
                     (view === 'dash' && item.view === 'dash' && item.label === 'Dashboard')
                   }
-                  onClick={() => setView(item.view)}
+                  onClick={() => { setView(item.view); if (isMobile) onClose() }}
                 />
               ))}
             </div>
@@ -167,7 +174,7 @@ export default function Sidebar({ view, setView, clients, clientIdx, isHome, onS
 }
 
 // ─── Client switcher dropdown (replaces static badge) ───────────────────────
-function ClientSwitcher({ clients, clientIdx, onSelectClient, onGoHome }) {
+function ClientSwitcher({ clients, clientIdx, onSelectClient, onGoHome, isMobile, onClose }) {
   const [open, setOpen] = useState(false)
   const ref = useRef(null)
   const active = clients[clientIdx]
@@ -235,7 +242,7 @@ function ClientSwitcher({ clients, clientIdx, onSelectClient, onGoHome }) {
             sub="All clients overview"
             icon={<span style={{ width: 13, height: 13, display: 'flex' }}>{icons.home}</span>}
             iconBg="linear-gradient(135deg, var(--blue), var(--purple))"
-            onClick={() => { setOpen(false); onGoHome() }}
+            onClick={() => { setOpen(false); onGoHome(); if (isMobile) onClose() }}
           />
           <div style={{ height: 1, background: 'var(--bdr)', margin: '0 10px' }} />
           {clients.map((c, i) => (
@@ -246,7 +253,7 @@ function ClientSwitcher({ clients, clientIdx, onSelectClient, onGoHome }) {
               active={i === clientIdx}
               iconBg={clientColor(i)}
               iconText={clientInitials(c.name)}
-              onClick={() => { setOpen(false); onSelectClient(i) }}
+              onClick={() => { setOpen(false); onSelectClient(i); if (isMobile) onClose() }}
             />
           ))}
         </div>
