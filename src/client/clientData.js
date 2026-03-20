@@ -187,8 +187,9 @@ export const PORTAL_DATA = {
     ],
 
     upcomingCalls: [
-      { fund: 'Apollo Global XVI',  amount: 1_200_000, due: '2026-04-08', type: 'Capital Call' },
-      { fund: 'Carlyle Fund VIII',  amount:   840_000, due: '2026-05-15', type: 'Capital Call' },
+      { fund: 'Blackstone BREIT',           amount:   350_000, due: '2026-04-08', type: 'Capital Call' },
+      { fund: 'KKR North America XII',      amount:   750_000, due: '2026-05-15', type: 'Capital Call' },
+      { fund: 'Vista Equity Partners VIII', amount:   750_000, due: '2026-06-10', type: 'Capital Call' },
     ],
 
     recentDistributions: [
