@@ -3,6 +3,7 @@ import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
   LineChart, Line, Cell, AreaChart, Area,
 } from 'recharts'
+import { useMobile } from '../lib/useMobile'
 
 // ─── Per-client aggregate mock data ────────────────────────────────────────
 const CLIENT_DATA = [
@@ -126,6 +127,8 @@ const urgencyColor = { urgent: '#ef4444', upcoming: '#f59e0b', future: '#3b82f6'
 const urgencyLabel = { urgent: 'Urgent', upcoming: 'Upcoming', future: 'Scheduled' }
 
 export default function AdvisorHome({ onSelectClient, clients = [] }) {
+  const isMobile = useMobile()
+
   // Map CLIENT_DATA index → real clients array index by name
   function selectByName(name) {
     const idx = clients.findIndex(c => c.name === name)
@@ -135,7 +138,7 @@ export default function AdvisorHome({ onSelectClient, clients = [] }) {
   const ytdBarData = CLIENT_DATA.map(c => ({ name: c.name.split(' ')[0], ytd: c.ytd }))
 
   return (
-    <div className="fade-up" style={{ padding: '20px 24px' }}>
+    <div className="fade-up" style={{ padding: isMobile ? '14px 14px' : '20px 24px' }}>
 
       {/* Alert banner */}
       <div style={{
@@ -154,7 +157,7 @@ export default function AdvisorHome({ onSelectClient, clients = [] }) {
       </div>
 
       {/* ── Row 1: Core AUM KPIs ─────────────────────────────────────────── */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10, marginBottom: 10 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)', gap: 10, marginBottom: 10 }}>
         <KPICard label="Total AUM" value="$178.8M" delta="+$9.4M" deltaDir="pos" sub="Since Oct 2025" color="#3b82f6" />
         <KPICard label="Avg YTD Return" value={`+${AVG_YTD}%`} delta="+2.8% vs S&P" deltaDir="pos" sub="Weighted by AUM" color="#22c55e" />
         <KPICard label="Capital Calls Due" value={fmtM(TOTAL_CALLS)} delta="7 calls pending" deltaDir="neg" sub="Next 90 days · 5 clients" color="#f59e0b" />
@@ -162,7 +165,7 @@ export default function AdvisorHome({ onSelectClient, clients = [] }) {
       </div>
 
       {/* ── Row 2: Performance & Business KPIs ───────────────────────────── */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10, marginBottom: 20 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)', gap: 10, marginBottom: 20 }}>
         <KPICard label="3Y CAGR" value="+9.8%" delta="+1.4% vs benchmark" deltaDir="pos" sub="Smoothed annual growth" color="#06b6d4" tooltip="Compound Annual Growth Rate — smoothed growth rate across all strategies, annualised over 3 years." />
         <KPICard label="TWRR (YTD)" value="+10.6%" delta="Strips cash flow timing" deltaDir="pos" sub="Time-weighted return" color="#8b5cf6" tooltip="Time-Weighted Rate of Return — isolates investment performance by eliminating the effect of client deposits and withdrawals." />
         <KPICard label="Revenue Growth" value="+14.2%" delta="+$218K YoY" deltaDir="pos" sub="AUM-based fee revenue" color="#22c55e" tooltip="Percentage increase in advisory fee revenue over the past 12 months, driven by AUM growth and new client onboarding." />
@@ -170,7 +173,7 @@ export default function AdvisorHome({ onSelectClient, clients = [] }) {
       </div>
 
       {/* ── Charts Row ────────────────────────────────────────────────────── */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 14 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 14, marginBottom: 14 }}>
         <Card title="Total AUM" sub="Last 6 months · All clients">
           <ResponsiveContainer width="100%" height={130}>
             <LineChart data={AUM_TREND} margin={{ top: 4, right: 4, left: -28, bottom: 0 }}>
@@ -204,7 +207,7 @@ export default function AdvisorHome({ onSelectClient, clients = [] }) {
 
       {/* ── Risk Dashboard ────────────────────────────────────────────────── */}
       <Card title="Risk Dashboard" sub="Aggregate risk metrics across all client portfolios" style={{ marginBottom: 14 }}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 10, marginBottom: 16 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(5, 1fr)', gap: 10, marginBottom: 16 }}>
           <RiskStat
             label="Sharpe Ratio"
             value="1.42"
@@ -272,7 +275,7 @@ export default function AdvisorHome({ onSelectClient, clients = [] }) {
       </Card>
 
       {/* ── Diversification + Top Holdings ───────────────────────────────── */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.4fr', gap: 14, marginBottom: 14 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1.4fr', gap: 14, marginBottom: 14 }}>
 
         {/* Diversification */}
         <Card title="Diversification" sub="Aggregate allocation across all client accounts">
@@ -310,7 +313,8 @@ export default function AdvisorHome({ onSelectClient, clients = [] }) {
 
         {/* Top Cross-Account Holdings */}
         <Card title="Top Holdings" sub="Largest positions across all client accounts">
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11 }}>
+          <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
+          <table style={{ width: '100%', minWidth: 380, borderCollapse: 'collapse', fontSize: 11 }}>
             <thead>
               <tr style={{ borderBottom: '1px solid var(--bdr)' }}>
                 {['Position', 'Class', 'Clients', 'Total Value', '% AUM'].map(h => (
@@ -324,12 +328,14 @@ export default function AdvisorHome({ onSelectClient, clients = [] }) {
               ))}
             </tbody>
           </table>
+          </div>
         </Card>
       </div>
 
       {/* ── Client Summary Table ──────────────────────────────────────────── */}
       <Card title="Client Overview" sub="Click any row to drill into client dashboard" style={{ marginBottom: 14 }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
+        <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
+        <table style={{ width: '100%', minWidth: 620, borderCollapse: 'collapse', fontSize: 12 }}>
           <thead>
             <tr style={{ borderBottom: '1px solid var(--bdr)' }}>
               {['Client', 'AUM', 'YTD Return', 'Alpha', 'Calls Due', 'Unfunded', 'Liquidity', 'Drift', 'Align Score'].map(h => (
@@ -343,10 +349,11 @@ export default function AdvisorHome({ onSelectClient, clients = [] }) {
             ))}
           </tbody>
         </table>
+        </div>
       </Card>
 
       {/* ── Capital Calls + Liquidity ─────────────────────────────────────── */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 14 }}>
         <Card title="Capital Calls" sub="All clients · Sorted by urgency">
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
             {CAPITAL_CALLS_CROSS.map((call, i) => (
