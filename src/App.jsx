@@ -7,6 +7,7 @@ import Reports from './components/Reports'
 import Upload from './components/Upload'
 import AdvisorHome from './components/AdvisorHome'
 import Liquidity from './components/Liquidity'
+import DriftMonitor from './components/DriftMonitor'
 import { fetchClients } from './lib/db'
 import { clients as mockClients } from './data/mockData'
 
@@ -15,6 +16,7 @@ const PAGE_TITLES = {
   dash:      'Portfolio Overview',
   calls:     'Capital Calls',
   liquidity: 'Liquidity Management',
+  drift:     'Drift & Allocation Monitor',
   reports:   'Report Builder',
   upload:    'Document Upload',
 }
@@ -115,6 +117,7 @@ export default function App() {
           {view === 'dash'    && <Dashboard onGoToCalls={() => setView('calls')} activeClient={activeClient} />}
           {view === 'calls'     && <CapitalCalls activeClient={activeClient} />}
           {view === 'liquidity' && <Liquidity activeClient={activeClient} />}
+          {view === 'drift'     && <DriftMonitor activeClient={activeClient} />}
           {view === 'reports' && <Reports />}
           {view === 'upload'  && <Upload clientId={activeClient?.id} clientName={activeClient?.name} />}
         </div>

@@ -21,7 +21,8 @@ const CLIENT_NAV = [
   {
     section: 'Analysis',
     items: [
-      { label: 'Risk & Exposure', view: 'dash', icon: 'shield' },
+      { label: 'Drift Monitor',   view: 'drift', icon: 'target' },
+      { label: 'Risk & Exposure', view: 'dash',  icon: 'shield' },
       { label: 'Benchmarks',      view: 'dash', icon: 'bar' },
       { label: 'Scenarios',       view: 'dash', icon: 'branch' },
     ],
@@ -58,6 +59,7 @@ const icons = {
   back:     <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M9 2L4 7l5 5"/></svg>,
   chevron:  <svg viewBox="0 0 10 10" width={9} height={9} fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M2 4l3 3 3-3"/></svg>,
   drop:     <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M7 1C7 1 2 6.5 2 9a5 5 0 0010 0C12 6.5 7 1 7 1z"/></svg>,
+  target:   <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="7" cy="7" r="5.5"/><circle cx="7" cy="7" r="2.5"/><circle cx="7" cy="7" r="0.8" fill="currentColor"/></svg>,
 }
 
 const clientInitials = name => name.split(' ').map(w => w[0]).join('').slice(0, 2)
