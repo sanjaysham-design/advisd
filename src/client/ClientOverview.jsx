@@ -256,13 +256,13 @@ function HoldingsModule({ holdings, showAll, setShowAll, expanded, setExpanded }
       {/* Column headers */}
       <div style={{
         display: 'grid',
-        gridTemplateColumns: '2fr 120px 110px 90px 90px 80px',
+        gridTemplateColumns: '2fr 120px 110px 90px 90px 110px 80px',
         padding: '8px 24px',
         borderTop: `1px solid ${C.bdr}`,
         borderBottom: `1px solid ${C.bdr}`,
         background: C.surf,
       }}>
-        {['Fund / Investment', 'Type', 'Value', '% of Portfolio', 'Return', 'Vintage'].map(h => (
+        {['Fund / Investment', 'Type', 'Value', '% of Portfolio', 'Return', 'Gain', 'Vintage'].map(h => (
           <div key={h} style={{
             fontSize: 10, color: C.tx3, textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 500,
             paddingLeft: h === 'Return' ? 20 : 0,
@@ -281,7 +281,7 @@ function HoldingsModule({ holdings, showAll, setShowAll, expanded, setExpanded }
               onClick={() => setExpanded(isOpen ? null : h.name)}
               style={{
                 display: 'grid',
-                gridTemplateColumns: '2fr 120px 110px 90px 90px 80px',
+                gridTemplateColumns: '2fr 120px 110px 90px 90px 110px 80px',
                 padding: '14px 24px',
                 borderBottom: `1px solid ${C.bdr}`,
                 cursor: 'pointer',
@@ -349,6 +349,25 @@ function HoldingsModule({ holdings, showAll, setShowAll, expanded, setExpanded }
                 <span style={{ fontSize: 13, fontWeight: 600, color: C.grn }}>{h.ret}%</span>
                 <span style={{ fontSize: 9, color: C.tx3 }}>{h.retLabel}</span>
               </div>
+
+              {/* Gain (dollar value) */}
+              {(() => {
+                const gainAmt = h.tvpi
+                  ? h.value * (1 - 1 / h.tvpi)          // unrealized gain from TVPI for PE/RE
+                  : h.value * (h.ret / 100)              // simple % × NAV for HF/FI/Equity/Cash
+                const isPos = gainAmt >= 0
+                return (
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 2 }}>
+                    <span style={{
+                      fontSize: 13, fontWeight: 600,
+                      color: isPos ? C.grn : C.red,
+                    }}>
+                      {isPos ? '+' : ''}{fmt$(gainAmt)}
+                    </span>
+                    <span style={{ fontSize: 9, color: C.tx3 }}>est. gain</span>
+                  </div>
+                )
+              })()}
 
               {/* Vintage + TVPI */}
               <div style={{ display: 'flex', alignItems: 'center', flexDirection: 'column', alignItems: 'flex-start', gap: 2 }}>
