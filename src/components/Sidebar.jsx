@@ -31,6 +31,7 @@ const CLIENT_NAV = [
     section: 'Reports',
     items: [
       { label: 'Report Builder', view: 'reports', icon: 'doc' },
+      { label: 'Meeting Prep',   view: 'meeting', icon: 'people' },
       { label: 'Scheduler',      view: 'dash',    icon: 'schedule' },
     ],
   },
@@ -61,6 +62,7 @@ const icons = {
   drop:     <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M7 1C7 1 2 6.5 2 9a5 5 0 0010 0C12 6.5 7 1 7 1z"/></svg>,
   target:   <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="7" cy="7" r="5.5"/><circle cx="7" cy="7" r="2.5"/><circle cx="7" cy="7" r="0.8" fill="currentColor"/></svg>,
   coin:     <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="7" cy="7" r="5.5"/><path d="M7 4v1.5M7 8.5V10M5.5 5.5h2a1 1 0 010 2H6a1 1 0 000 2h2.5"/></svg>,
+  people:   <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="5" cy="4.5" r="2"/><circle cx="10" cy="4" r="1.5"/><path d="M1 11.5c0-2.2 1.8-4 4-4s4 1.8 4 4"/><path d="M10.5 7.5c1.4.4 2.5 1.6 2.5 3"/></svg>,
 }
 
 const clientInitials = name => name.split(' ').map(w => w[0]).join('').slice(0, 2)
