@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { useMobile } from '../lib/useMobile'
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
   ResponsiveContainer, Cell,
@@ -97,6 +98,7 @@ export default function FeeTracking({ activeClient }) {
   const profile = PROFILES[name] ?? PROFILES[FALLBACK]
   const { funds, aum, netReturn } = profile
 
+  const isMobile = useMobile()
   const [expandedManager, setExpandedManager] = useState(null)
   const [sortCol, setSortCol]   = useState('feesYTD')
   const [sortDir, setSortDir]   = useState('desc')
@@ -148,10 +150,10 @@ export default function FeeTracking({ activeClient }) {
   }
 
   return (
-    <div style={{ padding: '24px 28px', animation: 'fadeUp 0.3s ease' }}>
+    <div style={{ padding: isMobile ? '14px 14px' : '24px 28px', animation: 'fadeUp 0.3s ease' }}>
 
       {/* KPI row */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 14, marginBottom: 24 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)', gap: isMobile ? 10 : 14, marginBottom: 24 }}>
         <KpiCard
           label="Total Fees YTD"
           value={fmtBig(totalFeesYTD)}
@@ -183,7 +185,7 @@ export default function FeeTracking({ activeClient }) {
       </div>
 
       {/* Two-column: fund table + manager rollup */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: 18, marginBottom: 24, alignItems: 'start' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 300px', gap: 18, marginBottom: 24, alignItems: 'start' }}>
 
         {/* ── Fund fee table ── */}
         <div style={{ background: 'var(--bg2)', border: '1px solid var(--bdr)', borderRadius: 14, overflow: 'hidden' }}>
@@ -264,7 +266,7 @@ export default function FeeTracking({ activeClient }) {
       </div>
 
       {/* Two charts row */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 18, marginBottom: 24 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 18, marginBottom: 24 }}>
 
         {/* Fee composition stacked bar */}
         <div style={{ background: 'var(--bg2)', border: '1px solid var(--bdr)', borderRadius: 14, padding: '18px 20px' }}>
