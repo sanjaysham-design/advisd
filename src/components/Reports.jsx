@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { reportTemplates } from '../data/mockData'
+import { useMobile } from '../lib/useMobile'
 
 const TABS = ['Templates', 'Scheduled', 'Archive']
 
@@ -15,9 +16,10 @@ const tagColors = {
 
 export default function Reports() {
   const [tab, setTab] = useState('Templates')
+  const isMobile = useMobile()
 
   return (
-    <div className="fade-up" style={{ padding: '20px 24px' }}>
+    <div className="fade-up" style={{ padding: isMobile ? '14px 14px' : '20px 24px' }}>
       <div style={{ display: 'flex', borderBottom: '1px solid var(--bdr)', marginBottom: 20 }}>
         {TABS.map(t => (
           <div key={t} onClick={() => setTab(t)} style={{
@@ -42,7 +44,7 @@ export default function Reports() {
               New Template
             </button>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 12 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3,1fr)', gap: 12 }}>
             {reportTemplates.map(t => <TemplateCard key={t.id} template={t} />)}
           </div>
         </>
@@ -52,7 +54,8 @@ export default function Reports() {
         <div>
           <div style={{ fontSize: 13, fontWeight: 500, marginBottom: 14 }}>Scheduled Distributions</div>
           <div style={{ background: 'var(--bg3)', border: '1px solid var(--bdr)', borderRadius: 12, overflow: 'hidden' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+            <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
+            <table style={{ width: '100%', minWidth: 540, borderCollapse: 'collapse' }}>
               <thead>
                 <tr>
                   {['Report', 'Client', 'Frequency', 'Next Run', 'Recipients', 'Status'].map(h => (
@@ -71,6 +74,7 @@ export default function Reports() {
                 ))}
               </tbody>
             </table>
+            </div>
           </div>
         </div>
       )}
@@ -79,7 +83,8 @@ export default function Reports() {
         <div>
           <div style={{ fontSize: 13, fontWeight: 500, marginBottom: 14 }}>Report Archive</div>
           <div style={{ background: 'var(--bg3)', border: '1px solid var(--bdr)', borderRadius: 12, overflow: 'hidden' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+            <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
+            <table style={{ width: '100%', minWidth: 540, borderCollapse: 'collapse' }}>
               <thead>
                 <tr>
                   {['Report', 'Client', 'Generated', 'Pages', 'Format', 'Action'].map(h => (
@@ -99,6 +104,7 @@ export default function Reports() {
                 ))}
               </tbody>
             </table>
+            </div>
           </div>
         </div>
       )}

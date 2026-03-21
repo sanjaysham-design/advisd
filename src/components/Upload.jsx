@@ -1,5 +1,6 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react'
 import { uploadDocument, fetchDocuments, deleteDocument, getDocumentUrl, updateDocumentType } from '../lib/db'
+import { useMobile } from '../lib/useMobile'
 
 const DOC_TYPES = [
   { value: 'capital_call',  label: 'Capital Call Notice' },
@@ -43,6 +44,7 @@ export default function Upload({ clientId, clientName }) {
   const [docType, setDocType] = useState('other')
   const [filter, setFilter] = useState('all')
   const fileRef = useRef()
+  const isMobile = useMobile()
 
   useEffect(() => {
     loadDocs()
@@ -174,10 +176,10 @@ export default function Upload({ clientId, clientName }) {
   const filtered = filter === 'all' ? docs : docs.filter(d => d.doc_type === filter)
 
   return (
-    <div className="fade-up" style={{ padding: '20px 24px' }}>
+    <div className="fade-up" style={{ padding: isMobile ? '14px 14px' : '20px 24px' }}>
 
       {/* Stats row */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 10, marginBottom: 20 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2,1fr)' : 'repeat(4,1fr)', gap: 10, marginBottom: 20 }}>
         {[
           { label: 'Total Documents', value: docs.length, color: null },
           { label: 'Capital Calls',   value: docs.filter(d => d.doc_type === 'capital_call').length,  color: '#fca5a5' },
@@ -278,10 +280,10 @@ export default function Upload({ clientId, clientName }) {
       </div>
 
       {/* Document library */}
-      <div style={{ display: 'flex', alignItems: 'center', marginBottom: 12, gap: 8 }}>
+      <div style={{ display: 'flex', alignItems: 'center', marginBottom: 12, gap: 8, flexWrap: isMobile ? 'wrap' : 'nowrap' }}>
         <div style={{ fontSize: 13, fontWeight: 500 }}>Document Library</div>
         <span style={{ fontSize: 10, color: 'var(--tx3)' }}>{filtered.length} files</span>
-        <div style={{ marginLeft: 'auto', display: 'flex', gap: 4 }}>
+        <div style={{ marginLeft: isMobile ? 0 : 'auto', display: 'flex', gap: 4, overflowX: 'auto', WebkitOverflowScrolling: 'touch', paddingBottom: isMobile ? 2 : 0 }}>
           {[['all', 'All'], ['capital_call', 'Capital Calls'], ['statement', 'Statements'], ['performance', 'Performance'], ['k1', 'K-1s']].map(([val, lbl]) => (
             <FilterPill key={val} label={lbl} active={filter === val} onClick={() => setFilter(val)} />
           ))}
@@ -294,7 +296,8 @@ export default function Upload({ clientId, clientName }) {
         ) : filtered.length === 0 ? (
           <EmptyState filter={filter} />
         ) : (
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+          <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
+          <table style={{ width: '100%', minWidth: 560, borderCollapse: 'collapse' }}>
             <thead>
               <tr>
                 {['File', 'Type', 'Client', 'Uploaded', 'Status', 'Actions'].map(h => (
@@ -312,6 +315,7 @@ export default function Upload({ clientId, clientName }) {
               ))}
             </tbody>
           </table>
+          </div>
         )}
       </div>
 

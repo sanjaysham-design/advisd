@@ -3,6 +3,7 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 
 import { useClientData } from '../lib/useClientData'
 import { PORTAL_DATA } from '../client/clientData'
 import LiquidityWidget from './LiquidityWidget'
+import { useMobile } from '../lib/useMobile'
 
 function fmt(n) {
   if (!n && n !== 0) return '—'
@@ -17,13 +18,14 @@ export default function CapitalCalls({ activeClient }) {
   const [tab, setTab] = useState('All Calls')
   const { capitalCalls, cashFlowForecast, loading, isLive } = useClientData(activeClient?.id)
   const holdings = PORTAL_DATA[activeClient?.name]?.holdings || []
+  const isMobile = useMobile()
 
   const totalDue      = capitalCalls.reduce((s, c) => s + (c.amount || 0), 0)
   const totalUnfunded = capitalCalls.reduce((s, c) => s + (c.unfundedRemaining || 0), 0)
   const urgentCount   = capitalCalls.filter(c => c.urgency === 'urgent' || c.urgency === 'upcoming').length
 
   return (
-    <div className="fade-up" style={{ padding: '20px 24px' }}>
+    <div className="fade-up" style={{ padding: isMobile ? '14px 14px' : '20px 24px' }}>
 
       {/* Live/demo badge */}
       {isLive && (
@@ -50,7 +52,7 @@ export default function CapitalCalls({ activeClient }) {
       </div>
 
       {/* KPIs */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 10, marginBottom: 20 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2,1fr)' : 'repeat(3,1fr)', gap: 10, marginBottom: 20 }}>
         {[
           { label: 'Due — 90 Days',   value: fmt(totalDue),      sub: `${capitalCalls.length} outstanding calls`, color: 'var(--amber)' },
           { label: 'Total Unfunded',  value: fmt(totalUnfunded), sub: `Across ${capitalCalls.length} funds`,      color: null },
@@ -78,7 +80,8 @@ export default function CapitalCalls({ activeClient }) {
         <div style={{ padding: 40, textAlign: 'center', color: 'var(--tx3)', fontSize: 12 }}>Loading capital calls…</div>
       ) : (
         <div style={{ background: 'var(--bg3)', border: '1px solid var(--bdr)', borderRadius: 12, overflow: 'hidden', marginBottom: 20 }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+          <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
+          <table style={{ width: '100%', minWidth: 640, borderCollapse: 'collapse' }}>
             <thead>
               <tr>
                 {['Fund', 'Manager', 'Call #', 'Amount', 'Due Date', 'Days', 'Status', 'Unfunded Remaining'].map(h => (
@@ -101,6 +104,7 @@ export default function CapitalCalls({ activeClient }) {
               )}
             </tbody>
           </table>
+          </div>
         </div>
       )}
 
@@ -132,7 +136,8 @@ export default function CapitalCalls({ activeClient }) {
       {/* Commitments table */}
       <div style={{ fontSize: 13, fontWeight: 500, marginBottom: 12 }}>All Fund Commitments</div>
       <div style={{ background: 'var(--bg3)', border: '1px solid var(--bdr)', borderRadius: 12, overflow: 'hidden' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+        <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
+        <table style={{ width: '100%', minWidth: 540, borderCollapse: 'collapse' }}>
           <thead>
             <tr>
               {['Fund', 'Manager', 'Amount Due', 'Due Date', 'Unfunded Remaining', 'Status'].map(h => (
@@ -144,6 +149,7 @@ export default function CapitalCalls({ activeClient }) {
             {capitalCalls.map(cc => <CommitmentRow key={cc.id} cc={cc} />)}
           </tbody>
         </table>
+        </div>
       </div>
     </div>
   )

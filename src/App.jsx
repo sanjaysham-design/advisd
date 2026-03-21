@@ -16,6 +16,7 @@ import Performance from './components/Performance'
 import { fetchClients } from './lib/db'
 import { clients as mockClients } from './data/mockData'
 import { getTokenByClient } from './client/tokens'
+import { useMobile } from './lib/useMobile'
 
 const PAGE_TITLES = {
   home:      'Advisor Overview',
@@ -37,6 +38,8 @@ export default function App() {
   const [clients, setClients]     = useState(mockClients.map(name => ({ id: null, name })))
   const [clientIdx, setClientIdx] = useState(0)
   const [dbReady, setDbReady]     = useState(false)
+  const [sidebarOpen, setSidebarOpen] = useState(false)
+  const isMobile = useMobile()
 
   useEffect(() => {
     fetchClients()
@@ -70,6 +73,17 @@ export default function App() {
 
   return (
     <div style={{ display: 'flex', height: '100vh', overflow: 'hidden' }}>
+      {/* Mobile overlay behind sidebar */}
+      {isMobile && sidebarOpen && (
+        <div
+          onClick={() => setSidebarOpen(false)}
+          style={{
+            position: 'fixed', inset: 0, zIndex: 999,
+            background: 'rgba(0,0,0,0.6)',
+          }}
+        />
+      )}
+
       <Sidebar
         view={view}
         setView={setView}
@@ -78,18 +92,36 @@ export default function App() {
         isHome={isHome}
         onSelectClient={selectClient}
         onGoHome={goHome}
+        isMobile={isMobile}
+        isOpen={!isMobile || sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
       />
 
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
         {/* Topbar */}
         <div style={{
           display: 'flex', alignItems: 'center',
-          padding: '14px 24px', borderBottom: '1px solid var(--bdr)',
-          background: 'var(--bg)', flexShrink: 0,
+          padding: isMobile ? '12px 14px' : '14px 24px',
+          borderBottom: '1px solid var(--bdr)',
+          background: 'var(--bg)', flexShrink: 0, gap: 10,
         }}>
-          <div>
+          {isMobile && (
+            <button
+              onClick={() => setSidebarOpen(true)}
+              style={{
+                background: 'none', border: 'none', cursor: 'pointer',
+                color: 'var(--tx)', padding: '4px 6px', borderRadius: 6,
+                display: 'flex', alignItems: 'center', flexShrink: 0,
+              }}
+            >
+              <svg viewBox="0 0 18 14" width={18} height={14} fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
+                <path d="M1 1h16M1 7h16M1 13h16"/>
+              </svg>
+            </button>
+          )}
+          <div style={{ flex: 1, minWidth: 0 }}>
             {/* Back breadcrumb when in client view */}
-            {!isHome && (
+            {!isHome && !isMobile && (
               <div
                 onClick={goHome}
                 style={{
@@ -104,19 +136,20 @@ export default function App() {
                 All Clients
               </div>
             )}
-            <div style={{ fontSize: 18, fontWeight: 600, letterSpacing: '-0.5px' }}>{PAGE_TITLES[view]}</div>
+            <div style={{ fontSize: isMobile ? 15 : 18, fontWeight: 600, letterSpacing: '-0.5px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{PAGE_TITLES[view]}</div>
             <div style={{ fontSize: 10, color: 'var(--tx3)', marginTop: 1, display: 'flex', alignItems: 'center', gap: 5 }}>
               <span style={{
                 width: 5, height: 5, borderRadius: '50%',
                 background: dbReady ? 'var(--green)' : 'var(--amber)',
                 display: 'inline-block', animation: 'pulse 2s infinite',
+                flexShrink: 0,
               }} />
               {dbReady ? 'Live · Supabase connected' : 'Demo mode'}
               {!isHome && <> · {activeClient?.name}</>}
               {isHome && <> · 5 clients · $178.8M AUM</>}
             </div>
           </div>
-          <div style={{ marginLeft: 'auto', display: 'flex', gap: 8 }}>
+          <div style={{ marginLeft: 'auto', display: 'flex', gap: 8, flexShrink: 0 }}>
             {!isHome && (() => {
               const token = getTokenByClient(activeClient?.name)
               if (!token) return null
@@ -127,13 +160,13 @@ export default function App() {
                 </Btn>
               )
             })()}
-            <Btn ghost>
+            <Btn ghost iconOnly={isMobile}>
               <svg viewBox="0 0 12 12" width={11} height={11} fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M2 4h8M2 6h5M2 8h4"/></svg>
-              Export PDF
+              {!isMobile && 'Export PDF'}
             </Btn>
-            <Btn>
+            <Btn iconOnly={isMobile}>
               <svg viewBox="0 0 12 12" width={11} height={11} fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M6 1v7M3 5l3 3 3-3"/><path d="M1 10h10"/></svg>
-              Share Report
+              {!isMobile && 'Share Report'}
             </Btn>
           </div>
         </div>
@@ -159,7 +192,7 @@ export default function App() {
   )
 }
 
-function Btn({ children, ghost, onClick }) {
+function Btn({ children, ghost, iconOnly, onClick }) {
   const [hov, setHov] = useState(false)
   return (
     <button
@@ -167,8 +200,8 @@ function Btn({ children, ghost, onClick }) {
       onMouseEnter={() => setHov(true)}
       onMouseLeave={() => setHov(false)}
       style={{
-        display: 'inline-flex', alignItems: 'center', gap: 5,
-        padding: '6px 12px', borderRadius: 7,
+        display: 'inline-flex', alignItems: 'center', gap: iconOnly ? 0 : 5,
+        padding: iconOnly ? '6px 8px' : '6px 12px', borderRadius: 7,
         fontFamily: 'inherit', fontSize: 11, fontWeight: 500,
         cursor: 'pointer', transition: 'all 0.15s',
         background: ghost ? (hov ? 'var(--surf2)' : 'var(--surf)') : (hov ? '#2563eb' : 'var(--blue)'),

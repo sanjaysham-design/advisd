@@ -8,6 +8,7 @@ import {
   attribution, riskMetrics,
 } from '../data/mockData'
 import { useClientData } from '../lib/useClientData'
+import { useMobile } from '../lib/useMobile'
 
 const clsColors = { pe: '#a78bfa', re: '#14b8a6', hf: '#3b82f6', eq: '#22c55e', fi: '#f59e0b' }
 
@@ -21,16 +22,17 @@ export default function Dashboard({ onGoToCalls, activeClient }) {
   const [activePeriod, setActivePeriod] = useState('YTD')
   const periods = ['1M', '3M', 'YTD', '1Y', '3Y']
   const { capitalCalls, holdings, isLive } = useClientData(activeClient?.id)
+  const isMobile = useMobile()
 
   return (
-    <div className="fade-up" style={{ padding: '20px 24px' }}>
+    <div className="fade-up" style={{ padding: isMobile ? '14px 14px' : '20px 24px' }}>
       {/* KPIs */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10, marginBottom: 20 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)', gap: 10, marginBottom: 20 }}>
         {kpis.map(k => <KPICard key={k.label} kpi={k} />)}
       </div>
 
       {/* Charts Row */}
-      <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 14, marginBottom: 20 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '2fr 1fr', gap: 14, marginBottom: 20 }}>
         {/* Performance Chart */}
         <Card>
           <div style={{ display: 'flex', alignItems: 'flex-start', marginBottom: 14 }}>
@@ -82,7 +84,7 @@ export default function Dashboard({ onGoToCalls, activeClient }) {
         <span style={{ marginLeft: 8, background: 'rgba(239,68,68,0.14)', color: 'var(--red)', fontSize: 9, fontWeight: 700, padding: '2px 7px', borderRadius: 8 }}>{capitalCalls.length} Pending</span>
         <span onClick={onGoToCalls} style={{ marginLeft: 'auto', fontSize: 11, color: 'var(--blue2)', cursor: 'pointer' }}>View all →</span>
       </div>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 10, marginBottom: 20 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3,1fr)', gap: 10, marginBottom: 20 }}>
         {capitalCalls.map(cc => <CallCard key={cc.id} cc={cc} />)}
       </div>
 
@@ -90,7 +92,7 @@ export default function Dashboard({ onGoToCalls, activeClient }) {
       <HoldingsTable holdings={holdings} />
 
       {/* Bottom Row */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 20 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 14, marginBottom: 20 }}>
         <Card>
           <div style={{ fontSize: 13, fontWeight: 500, marginBottom: 2 }}>Performance Attribution</div>
           <div style={{ fontSize: 10, color: 'var(--tx3)', marginBottom: 14 }}>Contribution by manager — YTD</div>
@@ -252,7 +254,8 @@ function HoldingsTable({ holdings = [] }) {
           ))}
         </div>
       </div>
-      <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+      <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
+      <table style={{ width: '100%', minWidth: 600, borderCollapse: 'collapse' }}>
         <thead>
           <tr>
             {['Investment', 'Class', 'Value', 'IRR / Return', 'TVPI', 'DPI', 'Unfunded', 'Weight'].map(h => (
@@ -268,6 +271,7 @@ function HoldingsTable({ holdings = [] }) {
           {filtered.map(h => <HoldingRow key={h.id} h={h} />)}
         </tbody>
       </table>
+      </div>
     </div>
   )
 }
