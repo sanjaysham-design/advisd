@@ -278,7 +278,7 @@ export default function AdvisorHome({ onSelectClient, clients = [] }) {
       <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1.4fr', gap: 14, marginBottom: 14 }}>
 
         {/* Diversification */}
-        <Card title="Diversification" sub="Aggregate allocation across all client accounts">
+        <Card title="Diversification" sub="Aggregate allocation across all client accounts" style={{ minWidth: 0 }}>
           <div style={{ marginBottom: 14 }}>
             <div style={{ fontSize: 10, color: 'var(--tx3)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 8 }}>By Asset Class</div>
             {ASSET_CLASSES.map(ac => (
@@ -312,7 +312,7 @@ export default function AdvisorHome({ onSelectClient, clients = [] }) {
         </Card>
 
         {/* Top Cross-Account Holdings */}
-        <Card title="Top Holdings" sub="Largest positions across all client accounts">
+        <Card title="Top Holdings" sub="Largest positions across all client accounts" style={{ minWidth: 0 }}>
           <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
           <table style={{ width: '100%', minWidth: 380, borderCollapse: 'collapse', fontSize: 11 }}>
             <thead>
