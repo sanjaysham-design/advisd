@@ -1,11 +1,13 @@
 import React from 'react'
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts'
 import { C } from './ClientPortal'
+import { useMobile } from '../lib/useMobile'
 
 const fmt$ = v => `$${v.toLocaleString()}`
 const fmtK = v => `$${(v / 1_000).toFixed(0)}K`
 
 export default function ClientTax({ data, clientName }) {
+  const isMobile = useMobile()
   const tax = data.tax
   const totalIncome = tax.income.reduce((s, i) => s + i.amount, 0)
   const k1Received  = tax.k1s.filter(k => k.status === 'received').length
@@ -64,7 +66,7 @@ export default function ClientTax({ data, clientName }) {
       </div>
 
       {/* ── Income breakdown + donut ───────────────────────────────────── */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: 20, marginBottom: 24 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 300px', gap: 20, marginBottom: 24 }}>
 
         {/* Income categories */}
         <div style={{ background: C.card, border: `1px solid ${C.bdr}`, borderRadius: 20, padding: 24 }}>

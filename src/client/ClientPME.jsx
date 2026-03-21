@@ -4,6 +4,7 @@ import {
   Tooltip, ResponsiveContainer, ReferenceLine,
 } from 'recharts'
 import { C } from './ClientPortal'
+import { useMobile } from '../lib/useMobile'
 
 const fmt$M  = v => `$${(v / 1_000_000).toFixed(1)}M`
 const fmtPct = v => `${v.toFixed(1)}%`
@@ -75,6 +76,7 @@ function computeValueCreation(cfHistory, currentNAV) {
 
 export default function ClientPME({ data, clientName }) {
   const [bench, setBench] = useState('sp500')
+  const isMobile = useMobile()
   const bm = BENCHMARKS[bench]
 
   const inceptionYear = parseInceptionYear(data.inception)
@@ -186,7 +188,7 @@ export default function ClientPME({ data, clientName }) {
 
       {/* ── Normalized growth chart ───────────────────────────────────── */}
       <div style={{ background: C.card, border: `1px solid ${C.bdr}`, borderRadius: 20, padding: '24px 24px 18px', marginBottom: 24 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 12, marginBottom: 20 }}>
           <div>
             <div style={{ fontSize: 14, fontWeight: 600 }}>$10M Invested at Inception — Growth vs {bm.label}</div>
             <div style={{ fontSize: 12, color: C.tx2, marginTop: 4 }}>
@@ -238,7 +240,7 @@ export default function ClientPME({ data, clientName }) {
       </div>
 
       {/* ── 4 benchmark comparison cards ─────────────────────────────── */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12, marginBottom: 24 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)', gap: 12, marginBottom: 24 }}>
         {Object.entries(BENCHMARKS).map(([id, b]) => {
           const { pmeRatio: ratio } = computeIRRPME(data.irr, b.annualReturn, years)
           const wins    = data.irr > b.annualReturn * 100
@@ -310,7 +312,7 @@ export default function ClientPME({ data, clientName }) {
         </div>
 
         {/* 4 stat cards */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)', gap: 12 }}>
           {[
             { label: 'Total Capital Deployed',    value: fmt$M(vc.totalDeployed),      sub: 'Contributions since inception', color: C.tx },
             { label: 'Distributions Received',    value: fmt$M(vc.totalDistributions), sub: 'Cash returned to you',          color: C.acc },
