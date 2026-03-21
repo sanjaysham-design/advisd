@@ -4,6 +4,7 @@ import {
   ResponsiveContainer, Cell, PieChart, Pie,
 } from 'recharts'
 import { C } from './ClientPortal'
+import { useMobile } from '../lib/useMobile'
 
 const fmt$M  = v => `$${(v / 1_000_000).toFixed(1)}M`
 const fmt$K  = v => v >= 0 ? `+$${(v / 1_000).toFixed(0)}K` : `-$${(Math.abs(v) / 1_000).toFixed(0)}K`
@@ -27,6 +28,7 @@ export default function ClientOverview({ data, clientName }) {
   const [period,    setPeriod]    = useState('1y')
   const [showAll,   setShowAll]   = useState(false)
   const [expanded,  setExpanded]  = useState(null)   // fund name of expanded row
+  const isMobile = useMobile()
 
   const months = PERIODS.find(p => p.id === period)?.months ?? 12
   const sliced = data.navHistory.slice(-months)
@@ -70,7 +72,7 @@ export default function ClientOverview({ data, clientName }) {
       </div>
 
       {/* ── Row: Performance chart + Allocation donut ─────────────────── */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 360px', gap: 20, marginBottom: 24 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 360px', gap: 20, marginBottom: 24 }}>
 
         {/* Chart */}
         <div style={{ background: C.card, border: `1px solid ${C.bdr}`, borderRadius: 20, padding: '24px 24px 18px' }}>
@@ -203,7 +205,7 @@ export default function ClientOverview({ data, clientName }) {
       </div>
 
       {/* ── Stats row ─────────────────────────────────────────────────── */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 14, marginBottom: 32 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)', gap: 14, marginBottom: 32 }}>
         {[
           { label: 'Net IRR',         value: `${data.irr}%`,         sub: 'Since inception' },
           { label: 'TWRR (3-Year)',   value: `${data.twrr}%`,        sub: 'Time-weighted' },
@@ -226,6 +228,7 @@ export default function ClientOverview({ data, clientName }) {
           setShowAll={setShowAll}
           expanded={expanded}
           setExpanded={setExpanded}
+          isMobile={isMobile}
         />
       )}
     </div>
@@ -233,7 +236,7 @@ export default function ClientOverview({ data, clientName }) {
 }
 
 // ── Holdings module ────────────────────────────────────────────────────────────
-function HoldingsModule({ holdings, showAll, setShowAll, expanded, setExpanded }) {
+function HoldingsModule({ holdings, showAll, setShowAll, expanded, setExpanded, isMobile }) {
   const sorted  = [...holdings].sort((a, b) => b.value - a.value)
   const visible = showAll ? sorted : sorted.slice(0, DEFAULT_SHOW)
   const hidden  = sorted.length - DEFAULT_SHOW
@@ -256,6 +259,10 @@ function HoldingsModule({ holdings, showAll, setShowAll, expanded, setExpanded }
           As of March 2026
         </div>
       </div>
+
+      {/* Column headers + rows (scroll wrapper on mobile) */}
+      <div style={{ overflowX: isMobile ? 'auto' : 'visible', WebkitOverflowScrolling: 'touch' }}>
+      <div style={{ minWidth: isMobile ? 750 : 0 }}>
 
       {/* Column headers */}
       <div style={{
@@ -402,6 +409,9 @@ function HoldingsModule({ holdings, showAll, setShowAll, expanded, setExpanded }
           </div>
         )
       })}
+
+      </div>{/* end minWidth wrapper */}
+      </div>{/* end scroll wrapper */}
 
       {/* Show more / less */}
       {holdings.length > DEFAULT_SHOW && (

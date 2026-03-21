@@ -5,6 +5,7 @@ import {
 } from 'recharts'
 import { C } from './ClientPortal'
 import LiquidityWidget from '../components/LiquidityWidget'
+import { useMobile } from '../lib/useMobile'
 
 const fmt$M = v => `$${(Math.abs(v) / 1_000_000).toFixed(2)}M`
 const fmt$K = v => `$${(Math.abs(v) / 1_000).toFixed(0)}K`
@@ -24,6 +25,7 @@ function daysUntil(dateStr) {
 }
 
 export default function ClientCashFlow({ data, clientName }) {
+  const isMobile = useMobile()
   const totalUpcoming = data.upcomingCalls.reduce((s, c) => s + c.amount, 0)
   const totalDistribs = data.recentDistributions.reduce((s, d) => s + d.amount, 0)
   const nextCall      = data.upcomingCalls[0]
@@ -145,7 +147,7 @@ export default function ClientCashFlow({ data, clientName }) {
       </div>
 
       {/* ── Side-by-side: upcoming calls + recent distributions ──────── */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 18 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 18 }}>
 
         {/* Upcoming capital calls */}
         <div style={{ background: C.card, border: `1px solid ${C.bdr}`, borderRadius: 20, padding: 24 }}>

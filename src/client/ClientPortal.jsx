@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { useMobile } from '../lib/useMobile'
 import { getClientByToken } from './tokens'
 import { PORTAL_DATA } from './clientData'
 import ClientOverview from './ClientOverview'
@@ -35,6 +36,7 @@ export default function ClientPortal({ token }) {
   const clientName = getClientByToken(token)
   const data = clientName ? PORTAL_DATA[clientName] : null
   const [view, setView] = useState('overview')
+  const isMobile = useMobile()
 
   // ── Auth gate ──────────────────────────────────────────────────────────────
   if (!clientName || !data) {
@@ -85,7 +87,7 @@ export default function ClientPortal({ token }) {
         background: C.card, borderBottom: `1px solid ${C.bdr}`,
         position: 'sticky', top: 0, zIndex: 50,
       }}>
-        <div style={{ maxWidth: 1080, margin: '0 auto', padding: '0 28px' }}>
+        <div style={{ maxWidth: 1080, margin: '0 auto', padding: isMobile ? '0 14px' : '0 28px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 16, height: 60 }}>
 
             {/* Logo */}
@@ -108,17 +110,29 @@ export default function ClientPortal({ token }) {
             {/* Client name */}
             <div style={{ fontSize: 13, color: C.tx2 }}>
               <span style={{ fontWeight: 500, color: C.tx }}>{clientName}</span>
-              <span style={{ marginLeft: 8, fontSize: 11 }}>· Client Portal</span>
+              {!isMobile && <span style={{ marginLeft: 8, fontSize: 11 }}>· Client Portal</span>}
             </div>
 
             {/* Spacer */}
             <div style={{ flex: 1 }} />
 
-            {/* Nav links */}
-            {NAV_ITEMS.map(n => (
+            {/* Nav links — desktop only (mobile nav rendered below) */}
+            {!isMobile && NAV_ITEMS.map(n => (
               <NavLink key={n.id} item={n} active={view === n.id} onClick={() => setView(n.id)} />
             ))}
           </div>
+
+          {/* Mobile nav strip */}
+          {isMobile && (
+            <div style={{
+              display: 'flex', gap: 6, paddingBottom: 10,
+              overflowX: 'auto', WebkitOverflowScrolling: 'touch',
+            }}>
+              {NAV_ITEMS.map(n => (
+                <NavLink key={n.id} item={n} active={view === n.id} onClick={() => setView(n.id)} />
+              ))}
+            </div>
+          )}
         </div>
       </header>
 
@@ -130,7 +144,7 @@ export default function ClientPortal({ token }) {
       </div>
 
       {/* ── Page content ── */}
-      <main style={{ maxWidth: 1080, margin: '0 auto', padding: '36px 28px 80px' }}>
+      <main style={{ maxWidth: 1080, margin: '0 auto', padding: isMobile ? '20px 14px 80px' : '36px 28px 80px' }}>
         {view === 'overview' && <ClientOverview data={data} clientName={clientName} />}
         {view === 'cashflow' && <ClientCashFlow data={data} clientName={clientName} />}
         {view === 'pme'      && <ClientPME      data={data} clientName={clientName} />}
