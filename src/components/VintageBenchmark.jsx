@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react'
+import { useMobile } from '../lib/useMobile'
 import {
   ComposedChart, Bar, Cell, Line, XAxis, YAxis,
   CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine,
@@ -145,6 +146,7 @@ export default function VintageBenchmark({ activeClient }) {
   const profile = PROFILES[name] ?? PROFILES[FALLBACK]
   const { funds } = profile
 
+  const isMobile = useMobile()
   const [clsFilter, setClsFilter] = useState('All')
   const [metric, setMetric]       = useState('irr')  // 'irr' | 'tvpi'
 
@@ -208,10 +210,10 @@ export default function VintageBenchmark({ activeClient }) {
     }))
 
   return (
-    <div style={{ padding: '24px 28px', animation: 'fadeUp 0.3s ease' }}>
+    <div style={{ padding: isMobile ? '14px 14px' : '24px 28px', animation: 'fadeUp 0.3s ease' }}>
 
       {/* KPI row */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 14, marginBottom: 24 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)', gap: isMobile ? 10 : 14, marginBottom: 24 }}>
         <KpiCard label="Portfolio Wtd IRR"   value={`${weightedIRR.toFixed(1)}%`}   sub="Value-weighted avg across all funds"       color="var(--green)" />
         <KpiCard label="Above Benchmark"     value={`${aboveMedian}/${eligible.length}`} sub="Funds above Cambridge Associates median" color="var(--blue)"  />
         <KpiCard label="Top Quartile Funds"  value={String(topQ)}                    sub={`${((topQ/eligible.length)*100).toFixed(0)}% of portfolio by count`} color="var(--purple)" />
@@ -219,7 +221,7 @@ export default function VintageBenchmark({ activeClient }) {
       </div>
 
       {/* Filter row */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 20 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 20, flexWrap: 'wrap' }}>
         <span style={{ fontSize: 10, color: 'var(--tx3)', marginRight: 4 }}>ASSET CLASS</span>
         {ALL_CLASSES.map(cls => (
           <FilterBtn key={cls} label={cls} active={clsFilter === cls} onClick={() => setClsFilter(cls)} color={CLS_COLORS[cls]} />
@@ -231,7 +233,7 @@ export default function VintageBenchmark({ activeClient }) {
       </div>
 
       {/* Two-column: benchmark table + quartile distribution */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 260px', gap: 18, marginBottom: 24, alignItems: 'start' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 260px', gap: 18, marginBottom: 24, alignItems: 'start' }}>
 
         {/* ── Benchmark comparison table ── */}
         <div style={{ background: 'var(--bg2)', border: '1px solid var(--bdr)', borderRadius: 14, overflow: 'hidden' }}>
@@ -239,7 +241,8 @@ export default function VintageBenchmark({ activeClient }) {
             <div style={{ fontSize: 12, fontWeight: 600 }}>Fund vs Cambridge Associates Benchmark</div>
             <div style={{ fontSize: 10, color: 'var(--tx3)', marginTop: 2 }}>IRR · TVPI · DPI compared to vintage-matched peers</div>
           </div>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11 }}>
+          <div style={{ overflowX: 'auto' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11, minWidth: 580 }}>
             <thead>
               <tr style={{ borderBottom: '1px solid var(--bdr)' }}>
                 {['Fund', 'Vintage', 'Class', 'IRR', 'vs Median', 'Q', 'TVPI', 'DPI', 'Commitment'].map((h, i) => (
@@ -259,6 +262,7 @@ export default function VintageBenchmark({ activeClient }) {
                 ))}
             </tbody>
           </table>
+          </div>
         </div>
 
         {/* ── Quartile distribution ── */}
